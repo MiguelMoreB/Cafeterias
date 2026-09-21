@@ -1,0 +1,212 @@
+/* =========================================================================
+   styles.css — Aspecto de la app. Paleta "café": marrones y crema.
+   Las variables de :root son colores con nombre; si quieres cambiar el
+   tema, cambias solo estas líneas y se actualiza toda la app.
+   ========================================================================= */
+:root {
+  --cafe: #4b2e1e;
+  --cafe-claro: #7a5237;
+  --crema: #faf5ef;
+  --tarjeta: #ffffff;
+  --texto: #2a211c;
+  --suave: #8a7d74;
+  --borde: #e7ddd3;
+  --verde: #1f8a4c;
+  --ambar: #d98a00;
+  --rojo: #c0392b;
+  --gris: #9aa0a6;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--crema);
+  color: var(--texto);
+  padding-bottom: 32px;
+}
+
+/* ---------- Barra superior ---------- */
+.barra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--cafe);
+  color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 500;
+}
+.barra h1 { font-size: 20px; margin: 0; }
+.acciones { display: flex; gap: 8px; }
+
+.btn-icono {
+  width: 40px; height: 40px;
+  border: none; border-radius: 50%;
+  background: rgba(255,255,255,.15);
+  color: #fff; font-size: 20px;
+  display: grid; place-items: center;
+  cursor: pointer;
+}
+.btn-icono:active { background: rgba(255,255,255,.3); }
+.btn-icono.activo { background: var(--verde); }
+
+.aviso {
+  margin: 0; padding: 8px 16px;
+  font-size: 13px; color: var(--suave);
+  background: #f3ece4;
+}
+.aviso:empty { display: none; }
+
+/* ---------- Pestañas ---------- */
+.tabs { display: flex; border-bottom: 1px solid var(--borde); background: var(--tarjeta); }
+.tab {
+  flex: 1; padding: 12px; border: none; background: none;
+  font-size: 15px; color: var(--suave); cursor: pointer;
+  border-bottom: 3px solid transparent;
+}
+.tab.activa { color: var(--cafe); font-weight: 600; border-bottom-color: var(--cafe); }
+
+/* ---------- Filtros ---------- */
+.filtros {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; padding: 12px 16px; font-size: 14px;
+}
+.filtro { display: flex; align-items: center; gap: 6px; color: var(--suave); }
+select, input[type="text"], textarea {
+  font: inherit; padding: 8px 10px;
+  border: 1px solid var(--borde); border-radius: 8px;
+  background: var(--tarjeta); color: var(--texto);
+}
+
+/* ---------- Lista de cafeterías ---------- */
+.lista { list-style: none; margin: 0; padding: 0 16px; display: grid; gap: 10px; }
+
+.tarjeta {
+  background: var(--tarjeta);
+  border: 1px solid var(--borde);
+  border-left: 5px solid var(--gris);
+  border-radius: 12px;
+  padding: 12px 14px;
+  cursor: pointer;
+}
+.tarjeta.abierta { border-left-color: var(--verde); }
+.tarjeta.cierra_pronto { border-left-color: var(--ambar); }
+.tarjeta.cerrada { border-left-color: var(--rojo); }
+
+.tarjeta h3 { margin: 0 0 4px; font-size: 16px; }
+.tarjeta .dir { margin: 0; font-size: 13px; color: var(--suave); }
+
+.tarjeta .meta {
+  display: flex; align-items: center; gap: 10px;
+  margin-top: 8px; font-size: 13px; flex-wrap: wrap;
+}
+.estado { font-weight: 600; }
+.estado.abierta { color: var(--verde); }
+.estado.cierra_pronto { color: var(--ambar); }
+.estado.cerrada { color: var(--rojo); }
+.estado.desconocido { color: var(--gris); }
+.km { color: var(--suave); }
+
+.vacio { text-align: center; color: var(--suave); padding: 40px 24px; line-height: 1.6; }
+
+/* ---------- Mapa ---------- */
+#mapa { height: 65vh; width: 100%; }
+.leyenda {
+  display: flex; gap: 14px; flex-wrap: wrap;
+  padding: 10px 16px; font-size: 13px; color: var(--suave);
+  align-items: center;
+}
+.punto { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+.punto.abierta { background: var(--verde); }
+.punto.cierra_pronto { background: var(--ambar); }
+.punto.cerrada { background: var(--rojo); }
+.punto.desconocido { background: var(--gris); }
+
+/* Marcadores del mapa (los dibujamos con CSS, no con imágenes) */
+.marcador {
+  width: 18px; height: 18px; border-radius: 50%;
+  border: 3px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.4);
+}
+.marcador.abierta { background: var(--verde); }
+.marcador.cierra_pronto { background: var(--ambar); }
+.marcador.cerrada { background: var(--rojo); }
+.marcador.desconocido { background: var(--gris); }
+.marcador.yo { background: #1a73e8; }
+
+/* ---------- Modales ---------- */
+.modal {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0,0,0,.45);
+  display: flex; align-items: flex-end; justify-content: center;
+}
+/* Importante: sin esta línea el atributo hidden no ocultaría el modal,
+   porque la regla display:flex de arriba le gana. */
+.modal[hidden] { display: none; }
+.modal-caja {
+  background: var(--crema);
+  width: 100%; max-width: 520px;
+  max-height: 88vh; overflow-y: auto;
+  border-radius: 16px 16px 0 0;
+  padding: 18px 16px 24px;
+}
+@media (min-width: 560px) {
+  .modal { align-items: center; }
+  .modal-caja { border-radius: 16px; }
+}
+.modal h2 { margin: 0 0 4px; font-size: 18px; }
+.modal h3 { margin: 18px 0 6px; font-size: 15px; }
+.ayuda { font-size: 13px; color: var(--suave); margin: 4px 0 12px; line-height: 1.5; }
+code { background: #efe7de; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+
+.fila { display: flex; gap: 8px; }
+.fila input { flex: 1; }
+
+.btn {
+  font: inherit; padding: 9px 14px;
+  border: none; border-radius: 8px;
+  background: var(--cafe); color: #fff;
+  cursor: pointer; text-decoration: none; display: inline-block;
+}
+.btn.secundario { background: var(--tarjeta); color: var(--cafe); border: 1px solid var(--borde); }
+.btn.peligro { background: var(--rojo); }
+.btn[disabled] { opacity: .5; cursor: default; }
+
+.enlaces { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+.enlaces .btn { font-size: 14px; }
+
+.chip {
+  display: inline-block; padding: 4px 10px; border-radius: 999px;
+  background: #efe7de; font-size: 13px; font-weight: 600; margin: 4px 0 0;
+}
+
+.resultados { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.resultados li {
+  background: var(--tarjeta); border: 1px solid var(--borde);
+  border-radius: 10px; padding: 10px 12px; cursor: pointer;
+}
+.resultados strong { display: block; font-size: 15px; }
+.resultados small { color: var(--suave); }
+
+/* Editor de horario: una fila por día */
+.editor-horario { display: grid; gap: 6px; }
+.dia-fila { display: grid; grid-template-columns: 90px 1fr; align-items: center; gap: 8px; }
+.dia-fila label { font-size: 14px; color: var(--suave); }
+.dia-fila input { width: 100%; }
+
+.campo { display: block; margin-top: 14px; font-size: 14px; color: var(--suave); }
+.campo textarea { width: 100%; margin-top: 4px; }
+
+.modal-pie { display: flex; gap: 8px; align-items: center; margin-top: 20px; }
+.espaciador { flex: 1; }
+
+/* ---------- Mensajito flotante ---------- */
+.toast {
+  position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+  background: #2a211c; color: #fff;
+  padding: 10px 16px; border-radius: 999px; font-size: 14px;
+  z-index: 2000; max-width: 90vw; text-align: center;
+}

@@ -1,0 +1,9 @@
+# Archivos del sistema / editor
+Thumbs.db
+desktop.ini
+.DS_Store
+.vscode/
+
+# Por si algún día agregas una llave o configuración local: NO se sube
+config.local.js
+*.key

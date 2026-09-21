@@ -1,0 +1,18 @@
+{
+  "name": "Cafeterías",
+  "short_name": "Cafés",
+  "description": "Mi lista de cafeterías con horarios, distancia y mapa",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#faf5ef",
+  "theme_color": "#4b2e1e",
+  "icons": [
+    {
+      "src": "icono.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

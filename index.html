@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <!-- viewport-fit + maximum-scale: se ve bien en celular y no hace zoom raro -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#4b2e1e">
+  <title>Cafeterías</title>
+
+  <!-- Leaflet: la librería del mapa. Es gratis y no pide API key.
+       Se carga desde un CDN (un servidor público), por eso la primera vez
+       necesitas internet. -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+  <link rel="stylesheet" href="styles.css">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icono.svg">
+</head>
+<body>
+
+  <header class="barra">
+    <h1>☕ Cafeterías</h1>
+    <div class="acciones">
+      <button id="btnUbicacion" class="btn-icono" title="Usar mi ubicación">📍</button>
+      <button id="btnAgregar" class="btn-icono" title="Agregar cafetería">＋</button>
+    </div>
+  </header>
+
+  <!-- Estado de la ubicación: se llena desde app.js -->
+  <p id="avisoUbicacion" class="aviso"></p>
+
+  <!-- Pestañas: Lista / Mapa -->
+  <nav class="tabs">
+    <button class="tab activa" data-vista="lista">Lista</button>
+    <button class="tab" data-vista="mapa">Mapa</button>
+  </nav>
+
+  <main>
+    <!-- ---------- VISTA LISTA ---------- -->
+    <section id="vistaLista">
+      <div class="filtros">
+        <label class="filtro">
+          <input type="checkbox" id="soloAbiertas"> Solo abiertas ahora
+        </label>
+        <select id="ordenar">
+          <option value="distancia">Ordenar: más cercanas</option>
+          <option value="nombre">Ordenar: por nombre</option>
+          <option value="estado">Ordenar: abiertas primero</option>
+        </select>
+      </div>
+
+      <ul id="lista" class="lista"></ul>
+
+      <p id="vacio" class="vacio">
+        Todavía no tienes cafeterías.<br>
+        Toca <strong>＋</strong> arriba para buscar la primera.
+      </p>
+    </section>
+
+    <!-- ---------- VISTA MAPA ---------- -->
+    <section id="vistaMapa" hidden>
+      <div id="mapa"></div>
+      <p class="leyenda">
+        <span class="punto abierta"></span> Abierta
+        <span class="punto cierra_pronto"></span> Cierra pronto
+        <span class="punto cerrada"></span> Cerrada
+        <span class="punto desconocido"></span> Sin horario
+      </p>
+    </section>
+  </main>
+
+  <!-- ================== MODAL: AGREGAR CAFETERÍA ================== -->
+  <div id="modalAgregar" class="modal" hidden>
+    <div class="modal-caja">
+      <h2>Agregar cafetería</h2>
+      <p class="ayuda">Escribe el nombre y, si quieres, la colonia o ciudad.</p>
+
+      <form id="formBuscar" class="fila">
+        <input type="text" id="textoBusqueda" placeholder="Ej. Café Nuevo León, Monterrey" autocomplete="off">
+        <button type="submit" class="btn">Buscar</button>
+      </form>
+
+      <p id="estadoBusqueda" class="ayuda"></p>
+      <ul id="resultados" class="resultados"></ul>
+
+      <div class="modal-pie">
+        <button class="btn secundario" data-cerrar>Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================== MODAL: DETALLE / EDITAR ================== -->
+  <div id="modalDetalle" class="modal" hidden>
+    <div class="modal-caja">
+      <h2 id="detalleNombre">Cafetería</h2>
+      <p id="detalleDireccion" class="ayuda"></p>
+      <p id="detalleEstado" class="chip"></p>
+
+      <div class="enlaces">
+        <a id="detalleComoLlegar" class="btn secundario" target="_blank" rel="noopener">Cómo llegar</a>
+        <a id="detalleVerMapa" class="btn secundario" target="_blank" rel="noopener">Ver en Google Maps</a>
+        <button id="btnActualizarOSM" class="btn secundario">Actualizar horario</button>
+      </div>
+
+      <h3>Horario</h3>
+      <p class="ayuda">
+        Formato: <code>08:00-20:00</code> · dos turnos: <code>08:00-13:00, 16:00-20:00</code> ·
+        vacío = cerrado
+      </p>
+      <div id="editorHorario" class="editor-horario"></div>
+
+      <label class="campo">
+        Notas
+        <textarea id="detalleNotas" rows="2" placeholder="Wifi bueno, tienen enchufes..."></textarea>
+      </label>
+
+      <div class="modal-pie">
+        <button id="btnEliminar" class="btn peligro">Eliminar</button>
+        <span class="espaciador"></span>
+        <button class="btn secundario" data-cerrar>Cancelar</button>
+        <button id="btnGuardar" class="btn">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mensajitos flotantes (guardado, errores...) -->
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="horarios.js"></script>
+  <script src="osm.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
