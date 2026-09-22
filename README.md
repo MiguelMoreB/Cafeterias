@@ -79,7 +79,15 @@ Dos entradas, en el modal de agregar → **Traer desde Google Maps**:
 1. **Pegar links** — uno o varios, una por línea. Opcionalmente `Mi nombre | https://...`
    para ponerle el nombre que tú quieras.
 2. **CSV de Google Takeout** — la exportación oficial de tus listas guardadas
-   (<https://takeout.google.com/settings/takeout/custom/maps>). Columnas `Title, Note, URL`.
+   (<https://takeout.google.com/>). Ojo: el producto es **"Guardados"**, no "Maps";
+   "Maps" trae tus reseñas y preferencias, y "Maps (tus lugares)" los lugares
+   etiquetados en JSON. Cada lista sale como un CSV con columnas `Title, Note, URL`.
+
+   **Advertencia:** varias filas de Takeout traen una URL **sin coordenadas** (del tipo
+   `.../maps/place/Nombre/data=!4m2!3m1!1s0x8662...`, que es un identificador interno de
+   Google). Para esas, la app busca el lugar por nombre en Nominatim, y si tampoco así
+   aparece, te la lista en "sin ubicar" con su liga para que la abras y pegues la URL
+   larga.
 
 Después de ubicarlas, la app hace **una sola** consulta a Overpass que cubre todos los
 puntos importados y le pega a cada una el horario de la cafetería de OSM que esté a
