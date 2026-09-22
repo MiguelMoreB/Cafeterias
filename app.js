@@ -89,8 +89,16 @@ function conectarEventos() {
     m.addEventListener('click', ev => {
       if (ev.target !== m) return;
       if (m.id === 'modalMapa') cerrarSelectorMapa();
-      else cerrarModales();
+      // La captura guiada no se cierra por tocar fuera: perderías el avance.
+      else if (m.id !== 'modalCaptura') cerrarModales();
     });
+  });
+
+  document.getElementById('capturaGuardar').addEventListener('click', guardarCaptura);
+  document.getElementById('capturaSaltar').addEventListener('click', saltarCaptura);
+  document.getElementById('capturaMapa').addEventListener('click', capturaEnMapa);
+  document.getElementById('capturaSalir').addEventListener('click', () => {
+    document.getElementById('modalCaptura').hidden = true;
   });
 
   document.getElementById('btnUsarPunto').addEventListener('click', confirmarPunto);
@@ -561,33 +569,19 @@ async function procesarImportacion(filas) {
     else sinCoordenadas.push(fila);
   }
 
-  // --- Paso 2: las que no traían coordenadas, se buscan por nombre.
-  // Nominatim pide máximo 1 consulta por segundo, así que ponemos un tope
-  // para no dejarte esperando dos minutos.
-  const noEncontradas = [];
-  const aBuscar = sinCoordenadas.slice(0, 10);
-  for (let i = 0; i < aBuscar.length; i++) {
-    const fila = aBuscar[i];
-    estadoImport(`Buscando por nombre ${i + 1} de ${aBuscar.length}: ${fila.nombre}...`);
-    try {
-      const encontrados = await buscarLugares(fila.nombre, miUbicacion);
-      // Solo aceptamos el resultado si de verdad se parece a lo que buscabas.
-      // Si no, es peor el remedio: quedaría en tu lista una cafetería
-      // equivocada, con nombre creíble, y ni cuenta te darías.
-      const bueno = encontrados.find(c => esCandidatoRazonable(fila.nombre, c));
-      if (bueno) {
-        ubicados.push(Object.assign({}, fila, bueno, {
-          nombre: fila.nombre,   // respetamos el nombre de TU lista
-          aproximada: true       // ubicación adivinada: hay que confirmarla
-        }));
-      } else {
-        noEncontradas.push(fila);
-      }
-    } catch (e) {
-      noEncontradas.push(fila);
-    }
-  }
-  noEncontradas.push(...sinCoordenadas.slice(10));
+  /* --- Paso 2: las que no traen coordenadas quedan pendientes.
+     DECISIÓN, medida con la lista real de 58 cafeterías de CDMX:
+
+     Intentar adivinarlas descargando las cafeterías mapeadas de la ciudad
+     recuperaba 13 de 58 (y solo 5 con horario), tardaba minutos y muchas
+     veces ni terminaba: los servidores gratuitos de Overpass devuelven 504
+     con zonas urbanas grandes. No vale la pena hacerlo por omisión.
+
+     Así que la importación es instantánea, y el intento automático queda
+     como un botón aparte, avisando que es lento y parcial. El camino bueno
+     para estas es la captura guiada: das el link de Google (coordenadas
+     exactas) y de paso pegas el horario. */
+  const noEncontradas = sinCoordenadas.slice();
 
   // --- Paso 3: pegarles el horario de OpenStreetMap, si existe.
   // Si esto falla NO cancelamos la importación (las cafeterías entran igual),
@@ -657,6 +651,70 @@ async function procesarImportacion(filas) {
     document.getElementById('textoPegado').value = '';
     toast(`Importadas ${agregadas} cafeterías`);
   }
+}
+
+/* -------------------------------------------------------------------------
+   centroParaBuscar()
+   Devuelve el punto alrededor del cual buscar: tu ubicación si la diste, o
+   la ciudad que escribiste (una sola consulta a Nominatim para ubicarla).
+   ------------------------------------------------------------------------- */
+async function centroParaBuscar() {
+  const ciudad = document.getElementById('ciudadImport').value.trim();
+  if (ciudad) {
+    try {
+      const lugares = await buscarLugares(ciudad, miUbicacion);
+      if (lugares.length > 0) return { lat: lugares[0].lat, lon: lugares[0].lon };
+    } catch (e) {
+      console.warn('No se pudo ubicar la ciudad', e);
+    }
+  }
+  return miUbicacion;
+}
+
+/* -------------------------------------------------------------------------
+   mejorPorNombre(nombre, cafesOSM)
+   Cruza el nombre de tu lista contra las cafeterías mapeadas de la zona.
+
+   Devuelve {cafe, exacto} o null. "exacto" distingue entre
+   "Nativos Café" == "Nativos Café" (seguro) y una coincidencia parcial
+   (que se marca como "ubicación por confirmar").
+   ------------------------------------------------------------------------- */
+function mejorPorNombre(nombre, cafesOSM) {
+  const buscado = normalizarNombre(nombre);
+  if (!buscado) return null;
+
+  const propias = new Set(palabrasConPeso(nombre));
+  let parcial = null;
+  let mejorPuntaje = 0;
+
+  for (const cafe of cafesOSM) {
+    if (normalizarNombre(cafe.nombre) === buscado) return { cafe, exacto: true };
+
+    const suyas = new Set(palabrasConPeso(cafe.nombre));
+    if (propias.size === 0 || suyas.size === 0) continue;
+
+    const comunes = [...propias].filter(p => suyas.has(p));
+    if (comunes.length === 0) continue;
+
+    // Que compartan al menos una palabra CON SUSTANCIA. Si no, "Binomio Café"
+    // acabaría emparejada con una cafetería que en OSM se llama "B".
+    if (!comunes.some(p => p.length >= 4)) continue;
+
+    // Y que las palabras compartidas sean la mayoría del nombre más largo,
+    // no del más corto: así "Latte Latte Coffee Crafters" no se confunde con
+    // "The Latte Café" solo porque ambas digan "latte".
+    const puntaje = comunes.length / Math.max(propias.size, suyas.size);
+    if (puntaje >= 0.6 && puntaje > mejorPuntaje) {
+      parcial = cafe;
+      mejorPuntaje = puntaje;
+    }
+  }
+
+  return parcial ? { cafe: parcial, exacto: false } : null;
+}
+
+function normalizarNombre(texto) {
+  return sinAcentos(texto).replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
 /* -------------------------------------------------------------------------
@@ -739,11 +797,34 @@ function mostrarPendientes(noEncontradas, cortos) {
   ul.innerHTML = '';
   if (noEncontradas.length === 0 && cortos.length === 0) return;
 
+  const faltantes = [...cortos, ...noEncontradas];
+
   const explicar = document.createElement('li');
   explicar.className = 'nota-pendientes';
-  explicar.textContent = 'Estas no las pude ubicar. Arréglalas aquí mismo: ' +
-    'ábrelas en Maps y pega la dirección larga, o ponlas tú en el mapa.';
+  explicar.textContent = 'Estas no están en OpenStreetMap, así que no hay de dónde ' +
+    'sacarlas automáticamente. Puedes capturarlas una por una (recomendado si son ' +
+    'muchas) o arreglarlas aquí abajo.';
   ul.appendChild(explicar);
+
+  const guiada = document.createElement('li');
+  guiada.className = 'nota-pendientes';
+
+  const botonGuiado = document.createElement('button');
+  botonGuiado.className = 'btn ancho';
+  botonGuiado.textContent = `Capturar las ${faltantes.length} una por una`;
+  botonGuiado.addEventListener('click', () => iniciarCaptura(faltantes));
+  guiada.appendChild(botonGuiado);
+
+  // El intento automático va aparte y con su advertencia: es lento y solo
+  // encuentra las que estén mapeadas en OpenStreetMap (con la lista real de
+  // prueba, 13 de 58).
+  const botonOSM = document.createElement('button');
+  botonOSM.className = 'btn secundario ancho';
+  botonOSM.textContent = 'Antes, intentar encontrarlas en OpenStreetMap (lento)';
+  botonOSM.addEventListener('click', () => intentarCruzarConOSM(faltantes, botonOSM));
+  guiada.appendChild(botonOSM);
+
+  ul.appendChild(guiada);
 
   for (const fila of [...cortos, ...noEncontradas]) {
     ul.appendChild(filaPendiente(fila));
@@ -815,6 +896,142 @@ function resolverPendiente(li, fila, punto) {
 
   li.className = 'resuelta';
   li.textContent = '✓ ' + (fila.nombre || 'Agregada') + ' — agregada, captúrale el horario';
+}
+
+/* -------------------------------------------------------------------------
+   intentarCruzarConOSM(filas)
+   El intento automático, a petición tuya: descarga las cafeterías mapeadas
+   de tu ciudad (por zonas, porque una consulta de ciudad entera revienta los
+   servidores gratuitos) y las cruza por nombre con tu lista.
+
+   Encuentra solo las que alguien haya mapeado en OpenStreetMap. Las que
+   aparecen quedan agregadas; el resto sigue esperando en la captura guiada.
+   ------------------------------------------------------------------------- */
+async function intentarCruzarConOSM(filas, boton) {
+  const centro = await centroParaBuscar();
+  if (!centro) {
+    estadoImport('Escribe arriba la ciudad de tus cafeterías (o activa tu ubicación 📍) para poder buscarlas.');
+    return;
+  }
+
+  boton.disabled = true;
+  const textoOriginal = boton.textContent;
+
+  try {
+    const cafesOSM = await buscarCafesEnArea(centro, 12000, (hechas, total) => {
+      boton.textContent = `Revisando zona ${hechas} de ${total}...`;
+    });
+
+    let encontradas = 0;
+    const siguenFaltando = [];
+
+    for (const fila of filas) {
+      const match = mejorPorNombre(fila.nombre, cafesOSM);
+      if (!match) { siguenFaltando.push(fila); continue; }
+
+      const lugar = Object.assign({}, fila, match.cafe, {
+        nombre: fila.nombre,        // respetamos el nombre de TU lista
+        aproximada: !match.exacto   // si el nombre no calzó exacto, se marca
+      });
+      if (yaExiste(lugar)) continue;
+
+      cafeterias.push(construirCafe(lugar, parsearOpeningHours(lugar.openingHours) || horariosVacios()));
+      encontradas++;
+    }
+
+    DB.guardar(cafeterias);
+    renderLista();
+    estadoImport(`Encontradas ${encontradas} de ${filas.length} en OpenStreetMap. ` +
+      `Las otras ${siguenFaltando.length} hay que capturarlas.`);
+    mostrarPendientes(siguenFaltando, []);
+  } catch (e) {
+    console.warn(e);
+    boton.disabled = false;
+    boton.textContent = textoOriginal;
+    estadoImport('Los servidores de OpenStreetMap no respondieron. Captúralas una por una: es más rápido que insistir.');
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Captura guiada: te lleva una por una por las que no se pudieron ubicar.
+   En cada una: la abres en Google Maps, pegas la dirección larga (de ahí
+   salen las coordenadas exactas) y, ya que estás en esa página, pegas el
+   horario. Es el camino más rápido cuando son decenas.
+   ------------------------------------------------------------------------- */
+let porCapturar = [];
+let indiceCaptura = 0;
+
+function iniciarCaptura(filas) {
+  porCapturar = filas.slice();
+  indiceCaptura = 0;
+  if (porCapturar.length === 0) return;
+  document.getElementById('modalCaptura').hidden = false;
+  mostrarCaptura();
+}
+
+function mostrarCaptura() {
+  const fila = porCapturar[indiceCaptura];
+  if (!fila) {
+    document.getElementById('modalCaptura').hidden = true;
+    toast('Terminaste la captura');
+    return;
+  }
+
+  document.getElementById('capturaProgreso').textContent =
+    `${indiceCaptura + 1} de ${porCapturar.length}`;
+  document.getElementById('capturaTitulo').textContent = fila.nombre || '(sin nombre)';
+  document.getElementById('capturaAbrir').href =
+    fila.url && /^https?:\/\//.test(fila.url)
+      ? fila.url
+      : 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(fila.nombre || '');
+  document.getElementById('capturaURL').value = '';
+  document.getElementById('capturaHorario').value = '';
+  document.getElementById('capturaAviso').textContent = '';
+}
+
+function guardarCaptura() {
+  const fila = porCapturar[indiceCaptura];
+  const aviso = document.getElementById('capturaAviso');
+  const punto = coordsDesdeTexto(document.getElementById('capturaURL').value);
+
+  if (!punto) {
+    aviso.textContent = 'Esa dirección no trae coordenadas. Abre el lugar en Google Maps ' +
+      'y copia la dirección COMPLETA de la barra (la que trae @ y números), o usa "Ponerla en el mapa".';
+    return;
+  }
+
+  guardarCapturada(fila, punto, document.getElementById('capturaHorario').value);
+}
+
+// Guarda la cafetería capturada y pasa a la siguiente.
+function guardarCapturada(fila, punto, textoHorario) {
+  const horarios = parsearHorarioPegado(textoHorario) || horariosVacios();
+  const lugar = Object.assign({}, fila, punto);
+
+  if (!yaExiste(lugar)) {
+    cafeterias.push(construirCafe(lugar, horarios));
+    DB.guardar(cafeterias);
+    renderLista();
+  }
+
+  indiceCaptura++;
+  mostrarCaptura();
+}
+
+function saltarCaptura() {
+  indiceCaptura++;
+  mostrarCaptura();
+}
+
+// Botón "Ponerla en el mapa" dentro de la captura guiada.
+function capturaEnMapa() {
+  const fila = porCapturar[indiceCaptura];
+  if (!fila) return;
+  const textoHorario = document.getElementById('capturaHorario').value;
+
+  abrirSelectorMapa(fila.nombre, null, punto => {
+    guardarCapturada(fila, punto, textoHorario);
+  });
 }
 
 /* -------------------------------------------------------------------------

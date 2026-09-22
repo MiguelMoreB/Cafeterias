@@ -116,26 +116,51 @@ function filasDesdeCSV(texto) {
   const lineas = partirCSV(String(texto || ''));
   if (lineas.length === 0) return [];
 
-  // Buscamos en qué columna viene el título y en cuál la URL.
-  const encabezado = lineas[0].map(c => c.trim().toLowerCase());
-  let iNombre = encabezado.findIndex(c => /^(title|nombre|name)$/.test(c));
-  let iUrl = encabezado.findIndex(c => /^(url|enlace|link)$/.test(c));
-  let iNota = encabezado.findIndex(c => /^(note|nota|comment|comentario)$/.test(c));
+  // OJO: el CSV de Takeout NO empieza con los encabezados. Trae primero el
+  // nombre de la lista y una línea en blanco:
+  //
+  //     Ruta del café
+  //
+  //     Título,Nota,URL,Etiquetas,Comentario
+  //     ,,,,
+  //     Tres Tigres Felices,,https://...
+  //
+  // Por eso buscamos la fila de encabezados en las primeras líneas, en vez
+  // de dar por hecho que es la primera. Y los títulos vienen en el idioma de
+  // tu cuenta ("Título", no "Title").
+  const ENCABEZADO_NOMBRE = /^(t[ií]tulo|title|nombre|name|lugar|place)$/;
+  const ENCABEZADO_URL = /^(url|enlace|link)$/;
+  const ENCABEZADO_NOTA = /^(nota|note|comentario|comment|descripci[óo]n|description)$/;
 
-  // Si el archivo no trae encabezados reconocibles, adivinamos:
-  // la columna que contenga "http" es la URL, la primera es el nombre.
-  const hayEncabezado = iNombre !== -1 || iUrl !== -1;
-  if (!hayEncabezado) {
-    iNombre = 0;
-    iUrl = (lineas[0] || []).findIndex(c => /https?:\/\//.test(c));
+  let filaEncabezado = -1;
+  let iNombre = -1, iUrl = -1, iNota = -1;
+
+  for (let i = 0; i < Math.min(lineas.length, 10); i++) {
+    const columnas = lineas[i].map(c => c.trim().toLowerCase());
+    const n = columnas.findIndex(c => ENCABEZADO_NOMBRE.test(c));
+    const u = columnas.findIndex(c => ENCABEZADO_URL.test(c));
+    if (n === -1 && u === -1) continue;
+
+    filaEncabezado = i;
+    iNombre = n;
+    iUrl = u;
+    iNota = columnas.findIndex(c => ENCABEZADO_NOTA.test(c));
+    break;
   }
 
   const filas = [];
-  for (const columnas of lineas.slice(hayEncabezado ? 1 : 0)) {
-    const nombre = (columnas[iNombre] || '').trim();
-    const url = iUrl === -1 ? '' : (columnas[iUrl] || '').trim();
-    const nota = iNota === -1 ? '' : (columnas[iNota] || '').trim();
-    if (!nombre && !url) continue;
+  const desde = filaEncabezado === -1 ? 0 : filaEncabezado + 1;
+
+  for (const columnas of lineas.slice(desde)) {
+    // Si no hubo encabezados, deducimos columna por columna: la que traiga
+    // "http" es la URL y la primera con texto es el nombre.
+    const url = (iUrl !== -1 ? columnas[iUrl] : columnas.find(c => /https?:\/\//.test(c)) || '').trim();
+    const nombre = (iNombre !== -1
+      ? columnas[iNombre]
+      : columnas.find(c => c.trim() && !/https?:\/\//.test(c)) || '').trim();
+    const nota = (iNota !== -1 ? columnas[iNota] || '' : '').trim();
+
+    if (!nombre && !url) continue; // filas vacías como ",,,,"
     filas.push({ nombre: nombre || nombreDesdeTexto(url), url, nota });
   }
   return filas;

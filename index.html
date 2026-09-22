@@ -101,6 +101,15 @@
           placeholder="https://www.google.com/maps/place/Cafe+Ejemplo/@25.6694,-100.3098,17z/..."></textarea>
         <button id="btnPegar" class="btn ancho">Agregar lo pegado</button>
 
+        <label class="campo">
+          Ciudad de tus cafeterías
+          <input type="text" id="ciudadImport" placeholder="Ej. Monterrey, Nuevo León" autocomplete="off">
+          <span class="ayuda">
+            Las listas de Google casi nunca traen coordenadas: solo el nombre. Con la
+            ciudad, la app puede encontrarlas por nombre. Sin ella, casi ninguna.
+          </span>
+        </label>
+
         <p class="ayuda">
           <strong>Toda tu lista guardada:</strong> entra a
           <a href="https://takeout.google.com/" target="_blank" rel="noopener">Google Takeout</a>,
@@ -174,6 +183,40 @@
         <span class="espaciador"></span>
         <button class="btn secundario" data-cerrar>Cancelar</button>
         <button id="btnGuardar" class="btn">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MODAL: CAPTURA GUIADA, UNA POR UNA ============ -->
+  <div id="modalCaptura" class="modal" hidden>
+    <div class="modal-caja">
+      <div class="captura-cabecera">
+        <p class="ayuda" id="capturaProgreso"></p>
+        <button id="capturaSalir" class="btn secundario chico">Salir</button>
+      </div>
+      <h2 id="capturaTitulo">Cafetería</h2>
+
+      <a id="capturaAbrir" class="btn ancho" target="_blank" rel="noopener">
+        1 · Abrirla en Google Maps
+      </a>
+
+      <label class="campo">
+        2 · Pega la dirección larga de la barra del navegador
+        <input type="text" id="capturaURL" placeholder="https://www.google.com/maps/place/..." autocomplete="off">
+      </label>
+
+      <label class="campo">
+        3 · Pega su horario (opcional, puedes hacerlo después)
+        <textarea id="capturaHorario" rows="3" placeholder="lunes	8:00–20:00&#10;martes	8:00–20:00"></textarea>
+      </label>
+
+      <p id="capturaAviso" class="ayuda"></p>
+
+      <div class="modal-pie">
+        <button id="capturaMapa" class="btn secundario">Ponerla en el mapa</button>
+        <span class="espaciador"></span>
+        <button id="capturaSaltar" class="btn secundario">Saltar</button>
+        <button id="capturaGuardar" class="btn">Guardar y seguir</button>
       </div>
     </div>
   </div>

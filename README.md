@@ -99,6 +99,33 @@ traen coordenadas dentro**; hay que abrirlos para que Google los expanda, y eso 
 navegador no nos deja hacerlo. La app los detecta y te los lista aparte con un botón
 para abrirlos, y de ahí copias la dirección larga.
 
+### Lo que se midió con una lista real (58 cafeterías de CDMX)
+
+No es teoría: se probó con un CSV de Takeout de verdad, y esto salió.
+
+| Qué se intentó | Resultado |
+|---|---|
+| Coordenadas dentro de las URLs del CSV | **0 de 58** (todas traen solo el id interno de Google) |
+| Que My Maps las geocodificara | **0 de 58** (el KML salió con 60 marcas y ningún punto) |
+| Buscar cada nombre en Nominatim | **0 de 4** en la muestra, y tarda 1 segundo por cafetería |
+| Cruzarlas con las cafeterías mapeadas de la ciudad | **13 de 58** (8 exactas, 5 parciales), y solo **5 con horario** |
+| Captura guiada (link de Maps + horario pegado) | **58 de 58**, con coordenadas exactas y horario real |
+
+Por eso la importación **no intenta adivinar por omisión**: entra al instante y te
+manda a la captura guiada. El cruce con OpenStreetMap quedó como un botón aparte
+marcado "(lento)", porque tarda minutos y recupera menos de la cuarta parte.
+
+Dos detalles técnicos que salieron de ahí:
+
+- **El CSV de Takeout no empieza con los encabezados**: trae el nombre de la lista,
+  una línea vacía y luego `Título,Nota,URL,Etiquetas,Comentario` (en el idioma de tu
+  cuenta). `filasDesdeCSV()` busca la fila de encabezados en las primeras 10 líneas
+  en vez de suponer que es la primera.
+- **Overpass no aguanta consultas de ciudad entera**: un `around:20000` sobre CDMX
+  devolvió 504 en los tres servidores públicos. `buscarCafesEnArea()` parte la zona
+  en una cuadrícula de 3×3 y consulta celda por celda, y `consultarOverpass()` rota
+  entre tres servidores espejo.
+
 ### Cuando Google no da las coordenadas, y OSM no da los horarios
 
 Es el caso normal, no la excepción. Estas son las tres salidas, de la más

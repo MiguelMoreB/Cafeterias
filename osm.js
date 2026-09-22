@@ -19,7 +19,15 @@
    ========================================================================= */
 
 const NOMINATIM = 'https://nominatim.openstreetmap.org/search';
-const OVERPASS = 'https://overpass-api.de/api/interpreter';
+
+// Overpass tiene varios servidores públicos con los MISMOS datos. El
+// principal se satura seguido (responde 429 o 504), así que si falla uno
+// probamos el siguiente antes de darnos por vencidos.
+const SERVIDORES_OVERPASS = [
+  'https://overpass-api.de/api/interpreter',
+  'https://overpass.kumi.systems/api/interpreter',
+  'https://overpass.osm.ch/api/interpreter'
+];
 
 let ultimaLlamada = 0;
 
@@ -109,33 +117,120 @@ function direccionCorta(r) {
    cafeterías de la zona y filtramos por nombre ya en el teléfono, que es
    instantáneo.
    ------------------------------------------------------------------------- */
-async function buscarCafesCerca(centro, radioMetros = 3000) {
+async function buscarCafesCerca(centro, radioMetros = 3000, tope = 80) {
   const alrededor = `around:${radioMetros},${centro.lat},${centro.lon}`;
   // nwr = nodes + ways + relations (un café puede estar mapeado como un
   // punto o como el polígono del edificio).
   const consulta =
-    `[out:json][timeout:25];` +
+    `[out:json][timeout:60];` +
     `nwr["amenity"~"^(cafe|coffee_shop)$"]["name"](${alrededor});` +
-    `out center tags 80;`;
+    `out center tags ${tope};`;
 
   const datos = await consultarOverpass(consulta);
   return (datos.elements || []).map(normalizarElementoOverpass).filter(Boolean);
 }
 
+/* -------------------------------------------------------------------------
+   buscarCafesEnArea(centro, radioMetros, tope)
+   Lo mismo que buscarCafesCerca, pero para zonas GRANDES (una ciudad entera).
+
+   La diferencia es el tipo de consulta. `around:20000,lat,lon` obliga a
+   Overpass a medir distancias una por una y con un radio grande se cae por
+   tiempo: los tres servidores públicos devolvieron 504 probando con la
+   Ciudad de México. Un rectángulo (bbox) usa directamente su índice
+   geográfico y responde. A cambio, la zona es un cuadrado en vez de un
+   círculo, lo cual aquí da igual: luego cruzamos por nombre.
+
+   También pedimos solo `nw` (puntos y edificios), sin relaciones, que son
+   las más caras de calcular y casi nunca son cafeterías.
+   ------------------------------------------------------------------------- */
+async function buscarCafesEnArea(centro, radioMetros = 12000, alAvanzar) {
+  // Cuántos grados son esos metros. Un grado de latitud son ~111.32 km;
+  // los de longitud se encogen conforme te alejas del ecuador.
+  const dLat = radioMetros / 111320;
+  const dLon = radioMetros / (111320 * Math.cos(centro.lat * Math.PI / 180));
+
+  // Una sola consulta de 24x24 km no pasa: los tres servidores devolvieron
+  // 504 con la Ciudad de México. En cambio, nueve consultas chicas de 8x8 km
+  // responden al instante cada una. Es más lento en total, pero funciona.
+  const CELDAS = 3;
+  const altoCelda = (dLat * 2) / CELDAS;
+  const anchoCelda = (dLon * 2) / CELDAS;
+
+  const encontrados = [];
+  const vistos = new Set();
+  let fallaron = 0;
+  let hechas = 0;
+
+  for (let i = 0; i < CELDAS; i++) {
+    for (let j = 0; j < CELDAS; j++) {
+      hechas++;
+      if (alAvanzar) alAvanzar(hechas, CELDAS * CELDAS);
+
+      const sur = (centro.lat - dLat + i * altoCelda).toFixed(5);
+      const norte = (centro.lat - dLat + (i + 1) * altoCelda).toFixed(5);
+      const oeste = (centro.lon - dLon + j * anchoCelda).toFixed(5);
+      const este = (centro.lon - dLon + (j + 1) * anchoCelda).toFixed(5);
+
+      // Solo `nw` (puntos y edificios): las relaciones son caras de calcular
+      // y casi nunca son cafeterías.
+      const consulta =
+        `[out:json][timeout:40];` +
+        `nw["amenity"~"^(cafe|coffee_shop)$"]["name"](${sur},${oeste},${norte},${este});` +
+        `out center tags 500;`;
+
+      try {
+        const datos = await consultarOverpass(consulta);
+        for (const el of datos.elements || []) {
+          const llave = el.type + el.id;
+          if (vistos.has(llave)) continue; // una celda puede repetir el borde
+          vistos.add(llave);
+          const cafe = normalizarElementoOverpass(el);
+          if (cafe) encontrados.push(cafe);
+        }
+      } catch (e) {
+        // Si una celda falla seguimos con las demás: mejor traer el 80% de la
+        // ciudad que nada.
+        if (e.message !== 'OSM_OCUPADO') throw e;
+        fallaron++;
+      }
+    }
+  }
+
+  if (fallaron === CELDAS * CELDAS) throw new Error('OSM_OCUPADO');
+  return encontrados;
+}
+
 // Todas las llamadas a Overpass pasan por aquí, para tratar los errores
 // en un solo lugar.
 async function consultarOverpass(consulta) {
+  let ultimoError = new Error('OSM_OCUPADO');
+
+  for (const servidor of SERVIDORES_OVERPASS) {
+    try {
+      return await consultarUnServidor(servidor, consulta);
+    } catch (e) {
+      ultimoError = e;
+      // Solo tiene sentido cambiar de servidor si el problema fue del servidor.
+      if (e.message !== 'OSM_OCUPADO') throw e;
+      console.warn('Overpass ocupado en ' + servidor + ', probando el siguiente');
+    }
+  }
+  throw ultimoError;
+}
+
+async function consultarUnServidor(servidor, consulta) {
   await esperarTurno();
 
-  const resp = await fetch(OVERPASS, {
+  const resp = await fetch(servidor, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: 'data=' + encodeURIComponent(consulta)
   });
 
-  // 429 = "vas muy rápido"; 504 = el servidor está saturado. Son gratuitos y
-  // compartidos por mucha gente, así que pasa de vez en cuando.
-  if (resp.status === 429 || resp.status === 504) {
+  // 429 = "vas muy rápido"; 504 y 503 = el servidor está saturado. Son
+  // gratuitos y compartidos por mucha gente, así que pasa seguido.
+  if (resp.status === 429 || resp.status === 503 || resp.status === 504) {
     throw new Error('OSM_OCUPADO');
   }
   if (!resp.ok) throw new Error('Overpass respondió ' + resp.status);
