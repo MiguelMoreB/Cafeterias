@@ -18,6 +18,7 @@ index.html      La pantalla: barra, pestañas Lista/Mapa, y los dos modales.
 styles.css      Colores y diseño. Los colores están arriba, en :root.
 horarios.js     El cerebro: entiende horarios y decide abierto/cerrado. Sin pantalla.
 osm.js          La conexión a internet: buscar lugares y traer sus horarios.
+importar.js     Leer links de Google Maps y el CSV de Google Takeout.
 app.js          Une todo: guarda datos, pinta la lista, el mapa y los modales.
 sw.js           Service worker: permite instalarla y abrirla sin internet.
 manifest.webmanifest / icono.svg   Para que se instale como app en el celular.
@@ -56,6 +57,39 @@ Un detalle importante de rendimiento: el filtro por nombre del modo cercano se h
 filtrar por nombre con expresiones regulares lo obliga a revisar todo y la consulta
 se cae por tiempo (devuelve 200 con un `remark`, no un error). La app detecta eso y
 el 429 ("vas muy rápido") y te avisa que el servidor gratuito está saturado.
+
+### Traer cafeterías desde Google Maps (`importar.js`)
+
+OpenStreetMap no tiene mapeadas todas las cafeterías, sobre todo las chiquitas y las
+nuevas. Google sí. Pero **un enlace de "compartir lista" no se puede leer**: Google no
+tiene API pública de listas guardadas, y el navegador bloquea leer contenido de
+google.com desde otra página (CORS). Lo que sí se puede leer es un **link de Maps**,
+porque las coordenadas van escritas dentro de la propia URL:
+
+```
+https://www.google.com/maps/place/Cafe+X/@25.6694,-100.3098,17z/data=!3d25.6712!4d-100.3105
+                                          └── centro de la vista ──┘      └── el lugar ──┘
+```
+
+Se prefiere el `!3d...!4d...` sobre el `@lat,lon`: el segundo es el centro del mapa,
+que puede estar corrido unos metros; el primero es el punto del lugar.
+
+Dos entradas, en el modal de agregar → **Traer desde Google Maps**:
+
+1. **Pegar links** — uno o varios, una por línea. Opcionalmente `Mi nombre | https://...`
+   para ponerle el nombre que tú quieras.
+2. **CSV de Google Takeout** — la exportación oficial de tus listas guardadas
+   (<https://takeout.google.com/settings/takeout/custom/maps>). Columnas `Title, Note, URL`.
+
+Después de ubicarlas, la app hace **una sola** consulta a Overpass que cubre todos los
+puntos importados y le pega a cada una el horario de la cafetería de OSM que esté a
+menos de 120 m. Una consulta por cafetería serían decenas de llamadas y el servidor
+gratuito nos cortaría.
+
+**Límite conocido:** los links cortos (`maps.app.goo.gl/...` del botón Compartir) **no
+traen coordenadas dentro**; hay que abrirlos para que Google los expanda, y eso el
+navegador no nos deja hacerlo. La app los detecta y te los lista aparte con un botón
+para abrirlos, y de ahí copias la dirección larga.
 
 ### Cómo se decide "abierta / cierra pronto / cerrada"
 

@@ -8,7 +8,7 @@
    Si cambias los archivos y no ves los cambios, sube el número de VERSION.
    ========================================================================= */
 
-const VERSION = 'cafeterias-v1';
+const VERSION = 'cafeterias-v2';
 
 const ARCHIVOS = [
   './',
@@ -16,6 +16,7 @@ const ARCHIVOS = [
   './styles.css',
   './horarios.js',
   './osm.js',
+  './importar.js',
   './app.js',
   './manifest.webmanifest',
   './icono.svg'

@@ -86,6 +86,36 @@
 
       <button id="btnCerca" class="btn secundario ancho">📍 Cafeterías cerca de mí</button>
 
+      <!-- Tercera vía: traerlas de Google Maps, que sí las tiene todas -->
+      <details class="bloque-importar">
+        <summary>Traer desde Google Maps</summary>
+
+        <p class="ayuda">
+          <strong>Un lugar:</strong> ábrelo en Google Maps, copia la dirección
+          <em>larga</em> de la barra del navegador (la que empieza con
+          <code>https://www.google.com/maps/place/...</code>) y pégala aquí.
+          Puedes pegar varias, una por línea.
+        </p>
+
+        <textarea id="textoPegado" rows="3"
+          placeholder="https://www.google.com/maps/place/Cafe+Ejemplo/@25.6694,-100.3098,17z/..."></textarea>
+        <button id="btnPegar" class="btn ancho">Agregar lo pegado</button>
+
+        <p class="ayuda">
+          <strong>Toda tu lista guardada:</strong> descárgala en
+          <a href="https://takeout.google.com/settings/takeout/custom/maps" target="_blank" rel="noopener">Google
+          Takeout</a> (elige solo <em>Maps</em>) y sube aquí el CSV de tu lista.
+        </p>
+
+        <label class="btn secundario ancho archivo">
+          Importar CSV de Google Takeout
+          <input type="file" id="archivoCSV" accept=".csv,text/csv" hidden>
+        </label>
+
+        <p id="estadoImport" class="ayuda"></p>
+        <ul id="pendientes" class="pendientes"></ul>
+      </details>
+
       <p id="estadoBusqueda" class="ayuda"></p>
       <ul id="resultados" class="resultados"></ul>
 
@@ -135,6 +165,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="horarios.js"></script>
   <script src="osm.js"></script>
+  <script src="importar.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

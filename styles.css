@@ -184,6 +184,30 @@ code { background: #efe7de; padding: 1px 5px; border-radius: 4px; font-size: 12p
   background: #efe7de; font-size: 13px; font-weight: 600; margin: 4px 0 0;
 }
 
+/* Bloque plegable "Traer desde Google Maps" */
+.bloque-importar {
+  margin-top: 16px; padding-top: 12px;
+  border-top: 1px solid var(--borde);
+}
+.bloque-importar summary {
+  cursor: pointer; font-weight: 600; font-size: 15px;
+  color: var(--cafe); padding: 4px 0;
+}
+.bloque-importar textarea {
+  width: 100%; font-size: 13px; font-family: ui-monospace, monospace;
+}
+.bloque-importar .archivo { text-align: center; cursor: pointer; }
+.bloque-importar em { color: var(--texto); font-style: normal; font-weight: 600; }
+
+.pendientes { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
+.pendientes li {
+  background: #fff6e6; border: 1px solid #f0dcb8;
+  border-radius: 8px; padding: 8px 10px; font-size: 13px;
+}
+.pendientes li.nota-pendientes { background: none; border: none; color: var(--suave); padding: 4px 0; }
+.pendientes strong { display: block; }
+.pendientes a { color: var(--cafe); }
+
 .resultados { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .resultados li {
   background: var(--tarjeta); border: 1px solid var(--borde);

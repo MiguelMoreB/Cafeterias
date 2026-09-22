@@ -72,6 +72,8 @@ function conectarEventos() {
     hacerBusqueda();
   });
   document.getElementById('btnCerca').addEventListener('click', buscarCercaDeMi);
+  document.getElementById('btnPegar').addEventListener('click', importarPegado);
+  document.getElementById('archivoCSV').addEventListener('change', importarArchivoCSV);
 
   document.getElementById('btnGuardar').addEventListener('click', guardarDetalle);
   document.getElementById('btnEliminar').addEventListener('click', eliminarDetalle);
@@ -372,9 +374,7 @@ async function agregarCafeteria(lugar) {
   const estado = document.getElementById('estadoBusqueda');
 
   // Si ya la tienes, no la duplicamos.
-  const repetida = cafeterias.find(c =>
-    (c.osmId && c.osmId === lugar.osmId && c.osmType === lugar.osmType) ||
-    (c.nombre === lugar.nombre && Math.abs(c.lat - lugar.lat) < 0.0005));
+  const repetida = yaExiste(lugar);
   if (repetida) {
     estado.textContent = '"' + repetida.nombre + '" ya está en tu lista.';
     return;
@@ -402,21 +402,7 @@ async function agregarCafeteria(lugar) {
   }
 
   const horarios = parsearOpeningHours(openingHours) || horariosVacios();
-
-  const cafe = {
-    id: 'c_' + Date.now() + '_' + Math.random().toString(16).slice(2, 6),
-    nombre: lugar.nombre,
-    direccion: lugar.direccion,
-    lat: lugar.lat,
-    lon: lugar.lon,
-    osmType: lugar.osmType,
-    osmId: lugar.osmId,
-    openingHoursOSM: openingHours || null, // el texto original, por si acaso
-    horarios,
-    telefono: telefono || null,
-    web: web || null,
-    notas: ''
-  };
+  const cafe = construirCafe(Object.assign({}, lugar, { openingHours, telefono, web }), horarios);
 
   cafeterias.push(cafe);
   DB.guardar(cafeterias);
@@ -431,7 +417,233 @@ async function agregarCafeteria(lugar) {
   }
 }
 
-/* =========================== 8. Detalle ================================= */
+// Arma el objeto que guardamos. Un solo lugar donde se decide la forma de
+// una cafetería, lo use quien lo use (búsqueda o importación).
+function construirCafe(datos, horarios) {
+  return {
+    id: 'c_' + Date.now() + '_' + Math.random().toString(16).slice(2, 6),
+    nombre: datos.nombre || 'Cafetería sin nombre',
+    direccion: datos.direccion || '',
+    lat: datos.lat,
+    lon: datos.lon,
+    osmType: datos.osmType || null,
+    osmId: datos.osmId || null,
+    openingHoursOSM: datos.openingHours || null, // el texto original, por si acaso
+    horarios: horarios || horariosVacios(),
+    telefono: datos.telefono || null,
+    web: datos.web || null,
+    notas: datos.notas || ''
+  };
+}
+
+// ¿Ya tengo esta cafetería? (mismo lugar de OSM, o mismo nombre a <50 m)
+function yaExiste(lugar) {
+  return cafeterias.find(c =>
+    (c.osmId && lugar.osmId && c.osmId === lugar.osmId && c.osmType === lugar.osmType) ||
+    (c.nombre === lugar.nombre && Math.abs(c.lat - lugar.lat) < 0.0005 &&
+     Math.abs(c.lon - lugar.lon) < 0.0005));
+}
+
+/* ===================== 8. Importar desde Google Maps ==================== */
+
+// Botón "Agregar lo pegado": uno o varios links de Google Maps.
+async function importarPegado() {
+  const texto = document.getElementById('textoPegado').value;
+  if (!texto.trim()) {
+    estadoImport('Pega al menos un link de Google Maps.');
+    return;
+  }
+  await procesarImportacion(filasDesdePegado(texto));
+}
+
+// Botón "Importar CSV de Takeout".
+function importarArchivoCSV(ev) {
+  const archivo = ev.target.files && ev.target.files[0];
+  if (!archivo) return;
+
+  const lector = new FileReader();
+  lector.onload = () => procesarImportacion(filasDesdeCSV(lector.result));
+  lector.onerror = () => estadoImport('No se pudo leer el archivo.');
+  lector.readAsText(archivo, 'utf-8');
+  ev.target.value = ''; // permite volver a elegir el mismo archivo
+}
+
+/* -------------------------------------------------------------------------
+   procesarImportacion(filas)
+   filas = [{nombre, url, nota}]
+
+   Pasos:
+     1. Sacar coordenadas del link de cada fila.
+     2. Las que no traían link usable: buscarlas por nombre en Nominatim.
+     3. UNA sola consulta a Overpass que cubra todos los puntos, para pegarles
+        el horario de OSM si esa cafetería está mapeada (no una consulta por
+        cafetería: serían decenas y el servidor gratuito nos cortaría).
+     4. Guardar, y reportar con claridad qué entró y qué no.
+   ------------------------------------------------------------------------- */
+async function procesarImportacion(filas) {
+  if (filas.length === 0) {
+    estadoImport('No encontré nada que importar en eso.');
+    return;
+  }
+
+  estadoImport(`Leyendo ${filas.length} lugares...`);
+  document.getElementById('pendientes').innerHTML = '';
+
+  const ubicados = [];
+  const sinCoordenadas = [];
+  const cortos = [];
+
+  for (const fila of filas) {
+    const coords = coordsDesdeTexto(fila.url) || coordsDesdeTexto(fila.nombre);
+    if (coords) ubicados.push(Object.assign({}, fila, coords));
+    else if (esLinkCorto(fila.url)) cortos.push(fila);
+    else sinCoordenadas.push(fila);
+  }
+
+  // --- Paso 2: las que no traían coordenadas, se buscan por nombre.
+  // Nominatim pide máximo 1 consulta por segundo, así que ponemos un tope
+  // para no dejarte esperando dos minutos.
+  const noEncontradas = [];
+  const aBuscar = sinCoordenadas.slice(0, 10);
+  for (let i = 0; i < aBuscar.length; i++) {
+    const fila = aBuscar[i];
+    estadoImport(`Buscando por nombre ${i + 1} de ${aBuscar.length}: ${fila.nombre}...`);
+    try {
+      const encontrados = await buscarLugares(fila.nombre, miUbicacion);
+      if (encontrados.length > 0) ubicados.push(Object.assign({}, fila, encontrados[0]));
+      else noEncontradas.push(fila);
+    } catch (e) {
+      noEncontradas.push(fila);
+    }
+  }
+  noEncontradas.push(...sinCoordenadas.slice(10));
+
+  // --- Paso 3: pegarles el horario de OpenStreetMap, si existe.
+  // Si esto falla NO cancelamos la importación (las cafeterías entran igual),
+  // pero sí hay que avisarlo: si no, parecería que OSM no tiene los horarios,
+  // cuando en realidad el servidor estaba saturado.
+  let avisoHorarios = '';
+  if (ubicados.length > 0) {
+    estadoImport(`Buscando horarios en OpenStreetMap de ${ubicados.length} lugares...`);
+    const zona = zonaQueCubre(ubicados);
+    try {
+      let cafesOSM;
+      try {
+        cafesOSM = await buscarCafesCerca(zona.centro, zona.radio);
+      } catch (e) {
+        if (e.message !== 'OSM_OCUPADO') throw e;
+        // Saturado: esperamos tantito y lo intentamos una vez más.
+        estadoImport('El servidor de OpenStreetMap está ocupado, reintentando...');
+        await new Promise(r => setTimeout(r, 4000));
+        cafesOSM = await buscarCafesCerca(zona.centro, zona.radio);
+      }
+      for (const lugar of ubicados) emparejarConOSM(lugar, cafesOSM);
+    } catch (e) {
+      console.warn('No se pudieron traer horarios de OSM', e);
+      avisoHorarios = e.message === 'OSM_OCUPADO'
+        ? ' · sin horarios: OpenStreetMap está saturado, vuelve a importar en un minuto y se completan'
+        : ' · sin horarios: no hubo conexión con OpenStreetMap';
+    }
+  }
+
+  // --- Paso 4: guardar.
+  let agregadas = 0, repetidas = 0, conHorario = 0;
+  for (const lugar of ubicados) {
+    if (yaExiste(lugar)) { repetidas++; continue; }
+    const horarios = parsearOpeningHours(lugar.openingHours) || horariosVacios();
+    if (tieneAlgunTurno(horarios)) conHorario++;
+    cafeterias.push(construirCafe(lugar, horarios));
+    agregadas++;
+  }
+
+  DB.guardar(cafeterias);
+  renderLista();
+
+  // --- Reporte honesto de lo que pasó.
+  const partes = [`${agregadas} agregadas`];
+  if (conHorario) partes.push(`${conHorario} con horario`);
+  if (repetidas) partes.push(`${repetidas} ya las tenías`);
+  if (noEncontradas.length || cortos.length) partes.push(`${noEncontradas.length + cortos.length} sin ubicar`);
+  estadoImport(partes.join(' · ') + avisoHorarios);
+
+  mostrarPendientes(noEncontradas, cortos);
+  if (agregadas > 0) {
+    document.getElementById('textoPegado').value = '';
+    toast(`Importadas ${agregadas} cafeterías`);
+  }
+}
+
+// Calcula un círculo que cubra todos los puntos importados, para pedirle a
+// Overpass las cafeterías de esa zona en UNA sola consulta.
+function zonaQueCubre(lugares) {
+  const lat = lugares.reduce((s, l) => s + l.lat, 0) / lugares.length;
+  const lon = lugares.reduce((s, l) => s + l.lon, 0) / lugares.length;
+  const centro = { lat, lon };
+  const masLejos = Math.max(...lugares.map(l => distanciaKm(lat, lon, l.lat, l.lon)));
+  // Mínimo 500 m, máximo 15 km (más allá la consulta tarda demasiado).
+  const radio = Math.min(15000, Math.max(500, Math.round(masLejos * 1000) + 300));
+  return { centro, radio };
+}
+
+// Busca la cafetería de OSM que esté prácticamente encima del punto de
+// Google (a menos de 120 m) y le copia horario, dirección y teléfono.
+function emparejarConOSM(lugar, cafesOSM) {
+  let mejor = null;
+  let mejorDistancia = 0.12; // km
+
+  for (const c of cafesOSM) {
+    const d = distanciaKm(lugar.lat, lugar.lon, c.lat, c.lon);
+    if (d < mejorDistancia) { mejor = c; mejorDistancia = d; }
+  }
+  if (!mejor) return;
+
+  lugar.openingHours = lugar.openingHours || mejor.openingHours;
+  lugar.direccion = lugar.direccion || mejor.direccion;
+  lugar.telefono = lugar.telefono || mejor.telefono;
+  lugar.web = lugar.web || mejor.web;
+  lugar.osmType = lugar.osmType || mejor.osmType;
+  lugar.osmId = lugar.osmId || mejor.osmId;
+}
+
+// Las que no se pudieron ubicar se listan con su liga, para que las abras y
+// pegues de vuelta la dirección larga (la que sí trae coordenadas).
+function mostrarPendientes(noEncontradas, cortos) {
+  const ul = document.getElementById('pendientes');
+  ul.innerHTML = '';
+  if (noEncontradas.length === 0 && cortos.length === 0) return;
+
+  const explicar = document.createElement('li');
+  explicar.className = 'nota-pendientes';
+  explicar.textContent = cortos.length
+    ? 'Estos son links cortos (maps.app.goo.gl): no traen coordenadas dentro. Ábrelos, y cuando Google Maps cargue, copia la dirección larga de la barra del navegador y pégala aquí arriba.'
+    : 'Estas no las encontré por nombre. Búscalas en Google Maps, copia la dirección larga de la barra del navegador y pégala aquí arriba.';
+  ul.appendChild(explicar);
+
+  for (const fila of [...cortos, ...noEncontradas]) {
+    const li = document.createElement('li');
+    const strong = document.createElement('strong');
+    // Si no tiene nombre (típico de los links cortos), mostramos la liga
+    // para que puedas identificar cuál es.
+    strong.textContent = fila.nombre || fila.url || '(sin nombre)';
+    li.appendChild(strong);
+
+    const a = document.createElement('a');
+    a.href = fila.url && /^https?:\/\//.test(fila.url)
+      ? fila.url
+      : 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(fila.nombre || '');
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.textContent = 'Abrir en Google Maps';
+    li.appendChild(a);
+    ul.appendChild(li);
+  }
+}
+
+function estadoImport(mensaje) {
+  document.getElementById('estadoImport').textContent = mensaje;
+}
+
+/* =========================== 9. Detalle ================================= */
 
 function abrirDetalle(id) {
   const cafe = cafeterias.find(c => c.id === id);
@@ -535,7 +747,7 @@ async function actualizarDesdeOSM() {
   }
 }
 
-/* ========================== 9. Utilidades =============================== */
+/* ========================= 10. Utilidades =============================== */
 
 function abrirModal(id) {
   document.getElementById(id).hidden = false;
