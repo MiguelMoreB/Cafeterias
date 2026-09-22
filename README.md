@@ -106,11 +106,22 @@ automática a la más manual:
 
 **Coordenadas**
 
-1. **KML de Google My Maps** (lo más automático). Entra a
+1. **KML/KMZ de Google My Maps** (lo más automático). Entra a
    <https://www.google.com/mymaps> → *Crear un mapa nuevo* → *Importar* → sube el CSV
    de Takeout. El geocodificador de Google le pone coordenadas a cada lugar. Luego
-   *⋮ → Exportar a KML/KMZ* → marca *Exportar como KML* y sube ese archivo a la app.
-   Es usar el geocodificador de Google sin API key ni tarjeta.
+   *⋮ → Exportar a KML/KMZ* y sube ese archivo a la app. Es usar el geocodificador de
+   Google sin API key ni tarjeta.
+
+   El importador acepta **CSV, KML, KMZ y JSON**, y decide por el contenido, no por la
+   extensión. El `.kmz` (lo que My Maps exporta por defecto) es un ZIP con un KML
+   adentro: `descomprimirKMZ()` lee el índice del ZIP y lo descomprime con
+   `DecompressionStream`, que ya viene en el navegador — sin librerías.
+
+   El selector de archivos va **sin filtro de tipo a propósito**: un `accept` mal
+   puesto bloquea archivos válidos y no hay forma de saberlo desde fuera.
+
+   Si reimportas algo que ya tenías, no se duplica; y si la vez anterior se quedó sin
+   horario porque OSM estaba saturado, esta vez **se lo completa**.
 2. **Pegar el link largo** de cada cafetería (trae el punto exacto dentro).
 3. **"Poner en el mapa"**: tocas el punto y ya. Nunca falla y no depende de nadie.
 

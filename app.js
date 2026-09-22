@@ -460,26 +460,70 @@ function yaExiste(lugar) {
 
 /* ===================== 8. Importar desde Google Maps ==================== */
 
-// Botón "Agregar lo pegado": uno o varios links de Google Maps.
+// Botón "Agregar lo pegado": links de Google Maps, o el contenido completo
+// de un KML/CSV/JSON pegado (por si el archivo no se deja subir).
 async function importarPegado() {
   const texto = document.getElementById('textoPegado').value;
   if (!texto.trim()) {
     estadoImport('Pega al menos un link de Google Maps.');
     return;
   }
-  await procesarImportacion(filasDesdePegado(texto));
+
+  const inicio = texto.slice(0, 800);
+  const esArchivoPegado = /<kml[\s>]/i.test(inicio) || /^\s*[[{]/.test(inicio) ||
+    /^\s*"?(title|nombre|name)"?\s*,/i.test(inicio);
+
+  await procesarImportacion(esArchivoPegado
+    ? filasDesdeArchivo(texto, '')
+    : filasDesdePegado(texto));
 }
 
-// Botón de archivo: acepta el CSV de Takeout y el KML de Google My Maps.
-function importarArchivoCSV(ev) {
+/* -------------------------------------------------------------------------
+   Botón de archivo. Acepta lo que sea que te haya dado Google:
+     .csv  - listas guardadas de Takeout
+     .kml  - exportación de My Maps marcando "Exportar como KML"
+     .kmz  - lo que exporta My Maps por defecto (un KML comprimido)
+     .json - "Saved Places.json" y otros de Takeout
+   ------------------------------------------------------------------------- */
+async function importarArchivoCSV(ev) {
   const archivo = ev.target.files && ev.target.files[0];
+  ev.target.value = ''; // permite volver a elegir el mismo archivo
   if (!archivo) return;
 
-  const lector = new FileReader();
-  lector.onload = () => procesarImportacion(filasDesdeArchivo(lector.result, archivo.name));
-  lector.onerror = () => estadoImport('No se pudo leer el archivo.');
-  lector.readAsText(archivo, 'utf-8');
-  ev.target.value = ''; // permite volver a elegir el mismo archivo
+  estadoImport('Leyendo ' + archivo.name + '...');
+
+  try {
+    let texto;
+    let nombre = archivo.name;
+
+    if (/\.kmz$/i.test(archivo.name)) {
+      texto = await descomprimirKMZ(await archivo.arrayBuffer());
+      nombre = 'doc.kml'; // ya viene descomprimido: se trata como KML
+    } else {
+      texto = await archivo.text();
+    }
+
+    const filas = filasDesdeArchivo(texto, nombre);
+    if (filas.length === 0) {
+      estadoImport('Leí el archivo pero no encontré lugares dentro. ' +
+        'Si es un CSV de Takeout, revisa que sea el de una lista (con columnas Title y URL).');
+      return;
+    }
+    await procesarImportacion(filas);
+  } catch (e) {
+    console.error(e);
+    estadoImport(explicarErrorArchivo(e, archivo.name));
+  }
+}
+
+function explicarErrorArchivo(e, nombreArchivo) {
+  if (e.message === 'KMZ_SIN_SOPORTE') {
+    return 'Este navegador no puede abrir archivos KMZ. Vuelve a exportar desde My Maps marcando la casilla "Exportar como KML".';
+  }
+  if (e.message === 'KMZ_INVALIDO' || e.message === 'KMZ_SIN_KML') {
+    return 'Ese KMZ no trae un KML adentro. Vuelve a exportarlo desde My Maps.';
+  }
+  return 'No se pudo leer ' + nombreArchivo + '. Prueba con otro formato (KML, CSV o JSON).';
 }
 
 /* -------------------------------------------------------------------------
@@ -574,10 +618,24 @@ async function procesarImportacion(filas) {
   }
 
   // --- Paso 4: guardar.
-  let agregadas = 0, repetidas = 0, conHorario = 0;
+  let agregadas = 0, repetidas = 0, conHorario = 0, completadas = 0;
   for (const lugar of ubicados) {
-    if (yaExiste(lugar)) { repetidas++; continue; }
     const horarios = parsearOpeningHours(lugar.openingHours) || horariosVacios();
+    const repetida = yaExiste(lugar);
+
+    if (repetida) {
+      // Si ya la tenías SIN horario y ahora sí vino uno, se lo completamos.
+      // (Pasa cuando reimportas porque la vez anterior OSM estaba saturado.)
+      if (!tieneAlgunTurno(repetida.horarios) && tieneAlgunTurno(horarios)) {
+        repetida.horarios = horarios;
+        repetida.openingHoursOSM = lugar.openingHours;
+        completadas++;
+      } else {
+        repetidas++;
+      }
+      continue;
+    }
+
     if (tieneAlgunTurno(horarios)) conHorario++;
     cafeterias.push(construirCafe(lugar, horarios));
     agregadas++;
@@ -589,6 +647,7 @@ async function procesarImportacion(filas) {
   // --- Reporte honesto de lo que pasó.
   const partes = [`${agregadas} agregadas`];
   if (conHorario) partes.push(`${conHorario} con horario`);
+  if (completadas) partes.push(`${completadas} completadas con su horario`);
   if (repetidas) partes.push(`${repetidas} ya las tenías`);
   if (noEncontradas.length || cortos.length) partes.push(`${noEncontradas.length + cortos.length} sin ubicar`);
   estadoImport(partes.join(' · ') + avisoHorarios);

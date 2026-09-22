@@ -185,10 +185,105 @@ function textoDeEtiqueta(elemento, etiqueta) {
   return nodo ? nodo.textContent.trim() : '';
 }
 
-// Decide solo si lo que subiste es un KML o un CSV.
+/* -------------------------------------------------------------------------
+   filasDesdeJSON(texto)
+   Google Takeout también exporta lugares en JSON (por ejemplo el archivo
+   "Saved Places.json" de "Maps (tus lugares)"). Viene en formato GeoJSON:
+
+     { "features": [ { "geometry": { "coordinates": [lon, lat] },
+                       "properties": { "location": { "name": "Café X" } } } ] }
+
+   Igual que en el KML: longitud primero, latitud después.
+   ------------------------------------------------------------------------- */
+function filasDesdeJSON(texto) {
+  let datos;
+  try { datos = JSON.parse(texto); } catch (e) { return []; }
+
+  const elementos = datos.features || datos.items || (Array.isArray(datos) ? datos : []);
+  const filas = [];
+
+  for (const el of elementos) {
+    const props = el.properties || el || {};
+    const loc = props.location || {};
+    const coords = (el.geometry && el.geometry.coordinates) || null;
+
+    const lat = coords ? Number(coords[1]) : Number(loc.latitude || props.latitude);
+    const lon = coords ? Number(coords[0]) : Number(loc.longitude || props.longitude);
+    const nombre = loc.name || props.name || props.Title || props.title || '';
+    const url = props['Google Maps URL'] || props.url || props.google_maps_url || '';
+
+    if (isFinite(lat) && isFinite(lon)) {
+      filas.push({ nombre: nombre || nombreDesdeTexto(url) || 'Cafetería sin nombre', url, nota: loc.address || '', lat, lon });
+    } else if (nombre || url) {
+      filas.push({ nombre: nombre || nombreDesdeTexto(url), url, nota: '' });
+    }
+  }
+  return filas;
+}
+
+/* -------------------------------------------------------------------------
+   descomprimirKMZ(buffer)
+   Un .kmz es un .zip que adentro trae un doc.kml. Google My Maps exporta KMZ
+   si no marcas la casilla "Exportar como KML", así que lo abrimos nosotros.
+
+   Se usa DecompressionStream, que ya viene en el navegador: no hace falta
+   ninguna librería. Leemos el índice del ZIP (su "directorio central"), que
+   está al final del archivo, y de ahí sacamos dónde empieza el doc.kml.
+   ------------------------------------------------------------------------- */
+async function descomprimirKMZ(buffer) {
+  const datos = new Uint8Array(buffer);
+  const vista = new DataView(buffer);
+
+  // El índice del ZIP termina con la firma 0x06054b50. La buscamos de atrás
+  // hacia adelante porque al final puede haber un comentario.
+  let finIndice = -1;
+  for (let i = datos.length - 22; i >= 0 && i > datos.length - 65558; i--) {
+    if (vista.getUint32(i, true) === 0x06054b50) { finIndice = i; break; }
+  }
+  if (finIndice === -1) throw new Error('KMZ_INVALIDO');
+
+  const cuantos = vista.getUint16(finIndice + 10, true);
+  let pos = vista.getUint32(finIndice + 16, true); // dónde empieza el índice
+
+  for (let n = 0; n < cuantos; n++) {
+    if (vista.getUint32(pos, true) !== 0x02014b50) throw new Error('KMZ_INVALIDO');
+
+    const metodo = vista.getUint16(pos + 10, true);       // 0 = tal cual, 8 = comprimido
+    const tamComprimido = vista.getUint32(pos + 20, true);
+    const largoNombre = vista.getUint16(pos + 28, true);
+    const largoExtra = vista.getUint16(pos + 30, true);
+    const largoComentario = vista.getUint16(pos + 32, true);
+    const inicioLocal = vista.getUint32(pos + 42, true);
+    const nombre = new TextDecoder().decode(datos.subarray(pos + 46, pos + 46 + largoNombre));
+
+    if (/\.kml$/i.test(nombre)) {
+      // La cabecera local repite el nombre y los extras, con otros tamaños.
+      const largoNombreLocal = vista.getUint16(inicioLocal + 26, true);
+      const largoExtraLocal = vista.getUint16(inicioLocal + 28, true);
+      const inicioDatos = inicioLocal + 30 + largoNombreLocal + largoExtraLocal;
+      const comprimido = datos.subarray(inicioDatos, inicioDatos + tamComprimido);
+
+      if (metodo === 0) return new TextDecoder().decode(comprimido);
+      if (typeof DecompressionStream !== 'function') throw new Error('KMZ_SIN_SOPORTE');
+
+      const flujo = new Blob([comprimido]).stream()
+        .pipeThrough(new DecompressionStream('deflate-raw'));
+      return await new Response(flujo).text();
+    }
+
+    pos += 46 + largoNombre + largoExtra + largoComentario;
+  }
+  throw new Error('KMZ_SIN_KML');
+}
+
+// Decide solo qué le subiste: KML, CSV o JSON.
 function filasDesdeArchivo(texto, nombreArchivo) {
-  const esKML = /\.kml$/i.test(nombreArchivo || '') || /<kml[\s>]/i.test(texto.slice(0, 500));
-  return esKML ? filasDesdeKML(texto) : filasDesdeCSV(texto);
+  const nombre = nombreArchivo || '';
+  const inicio = texto.slice(0, 800);
+
+  if (/\.kml$/i.test(nombre) || /<kml[\s>]/i.test(inicio)) return filasDesdeKML(texto);
+  if (/\.json$/i.test(nombre) || /^\s*[[{]/.test(inicio)) return filasDesdeJSON(texto);
+  return filasDesdeCSV(texto);
 }
 
 // Parte un CSV respetando las comillas. Devuelve un arreglo de filas,

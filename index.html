@@ -109,8 +109,10 @@
         </p>
 
         <label class="btn secundario ancho archivo">
-          Importar CSV de Takeout o KML de My Maps
-          <input type="file" id="archivoCSV" accept=".csv,.kml,text/csv,application/vnd.google-earth.kml+xml" hidden>
+          Importar archivo (CSV, KML, KMZ o JSON)
+          <!-- Sin filtro de tipo a propósito: así el selector nunca te bloquea
+               un archivo, y la app decide por su contenido qué es. -->
+          <input type="file" id="archivoCSV" hidden>
         </label>
 
         <p id="estadoImport" class="ayuda"></p>
