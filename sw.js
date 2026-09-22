@@ -8,7 +8,7 @@
    Si cambias los archivos y no ves los cambios, sube el número de VERSION.
    ========================================================================= */
 
-const VERSION = 'cafeterias-v5';
+const VERSION = 'cafeterias-v6';
 
 const ARCHIVOS = [
   './',

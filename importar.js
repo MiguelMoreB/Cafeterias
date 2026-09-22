@@ -211,6 +211,27 @@ function textoDeEtiqueta(elemento, etiqueta) {
 }
 
 /* -------------------------------------------------------------------------
+   diagnosticoKML(texto)
+   Un KML puede traer lugares SIN coordenadas, y es el caso más común y más
+   confuso: My Maps exporta `<address>` en vez de `<Point>` cuando la capa se
+   creó geocodificando una columna de texto. En pantalla ves los pines, pero
+   el archivo no los trae.
+
+   Esta función distingue "el archivo está vacío" de "el archivo trae lugares
+   pero sin punto", para poder decirte exactamente qué hacer.
+   ------------------------------------------------------------------------- */
+function diagnosticoKML(texto) {
+  const doc = new DOMParser().parseFromString(texto, 'application/xml');
+  const marcas = doc.getElementsByTagName('Placemark');
+  let conPunto = 0;
+
+  for (const marca of marcas) {
+    if (marca.getElementsByTagName('coordinates').length > 0) conPunto++;
+  }
+  return { lugares: marcas.length, conPunto, sinPunto: marcas.length - conPunto };
+}
+
+/* -------------------------------------------------------------------------
    filasDesdeJSON(texto)
    Google Takeout también exporta lugares en JSON (por ejemplo el archivo
    "Saved Places.json" de "Maps (tus lugares)"). Viene en formato GeoJSON:

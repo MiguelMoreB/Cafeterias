@@ -139,6 +139,22 @@ automática a la más manual:
    *⋮ → Exportar a KML/KMZ* y sube ese archivo a la app. Es usar el geocodificador de
    Google sin API key ni tarjeta.
 
+   **Trampa comprobada:** el KML que exporta My Maps con *Exportar a KML/KMZ* puede venir
+   **sin coordenadas**. Cuando la capa se creó geocodificando una columna de texto, el
+   archivo trae `<address>` (que en las listas de Takeout es el puro nombre del café) en
+   vez de `<Point>`. En la pantalla de My Maps ves los pines, pero no están en el archivo:
+   Google geocodifica al dibujar, no al exportar.
+
+   La salida es pedirle el mapa **ya renderizado**, que sí trae los puntos:
+
+   ```
+   https://www.google.com/maps/d/kml?mid=TU_ID_DE_MAPA&forcekml=1
+   ```
+
+   El `mid` sale de la barra de direcciones al editar el mapa. Hay que abrirlo con la
+   sesión de Google iniciada. La app detecta este caso exacto (`diagnosticoKML()`) y te
+   da esta instrucción en pantalla en vez de un "no encontré nada".
+
    El importador acepta **CSV, KML, KMZ y JSON**, y decide por el contenido, no por la
    extensión. El `.kmz` (lo que My Maps exporta por defecto) es un ZIP con un KML
    adentro: `descomprimirKMZ()` lee el índice del ZIP y lo descomprime con

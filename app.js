@@ -513,8 +513,7 @@ async function importarArchivoCSV(ev) {
 
     const filas = filasDesdeArchivo(texto, nombre);
     if (filas.length === 0) {
-      estadoImport('Leí el archivo pero no encontré lugares dentro. ' +
-        'Si es un CSV de Takeout, revisa que sea el de una lista (con columnas Title y URL).');
+      estadoImport(explicarArchivoVacio(texto, nombre));
       return;
     }
     await procesarImportacion(filas);
@@ -522,6 +521,36 @@ async function importarArchivoCSV(ev) {
     console.error(e);
     estadoImport(explicarErrorArchivo(e, archivo.name));
   }
+}
+
+/* -------------------------------------------------------------------------
+   Cuando un archivo no aporta ni una cafetería, decir POR QUÉ.
+
+   El caso que más confunde: el KML de Google My Maps. En la pantalla de My
+   Maps ves tus pines colocados, pero el archivo exportado trae `<address>`
+   (que en las listas de Takeout es el puro nombre del café) en lugar de
+   `<Point>`. Google geocodifica al dibujar, no al exportar.
+
+   La salida es pedirle a Google el mapa YA RENDERIZADO, que sí trae los
+   puntos: www.google.com/maps/d/kml?mid=TU_ID&forcekml=1
+   ------------------------------------------------------------------------- */
+function explicarArchivoVacio(texto, nombreArchivo) {
+  const esKML = /\.kml$/i.test(nombreArchivo || '') || /<kml[\s>]/i.test(texto.slice(0, 800));
+
+  if (esKML) {
+    const d = diagnosticoKML(texto);
+    if (d.lugares > 0 && d.conPunto === 0) {
+      return `Este KML trae ${d.lugares} lugares pero NINGUNO con coordenadas: My Maps ` +
+        `exportó los nombres, no los puntos que ves en su pantalla. Solución: abre tu mapa ` +
+        `en My Maps, copia el "mid=" de la barra de direcciones, y entra a ` +
+        `www.google.com/maps/d/kml?mid=TU_ID&forcekml=1 — ese archivo sí trae los puntos. ` +
+        `Súbelo aquí.`;
+    }
+    return 'Este KML no trae lugares dentro.';
+  }
+
+  return 'Leí el archivo pero no encontré lugares dentro. ' +
+    'Si es un CSV de Takeout, revisa que sea el de una lista (con columnas Título y URL).';
 }
 
 function explicarErrorArchivo(e, nombreArchivo) {
