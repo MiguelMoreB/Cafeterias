@@ -83,10 +83,20 @@ function conectarEventos() {
   document.querySelectorAll('[data-cerrar]').forEach(b => {
     b.addEventListener('click', () => cerrarModales());
   });
-  // Tocar el fondo oscuro también cierra
+  // Tocar el fondo oscuro también cierra (el selector de mapa se cierra solo
+  // a sí mismo, para no perder el detalle que tienes abierto debajo).
   document.querySelectorAll('.modal').forEach(m => {
-    m.addEventListener('click', ev => { if (ev.target === m) cerrarModales(); });
+    m.addEventListener('click', ev => {
+      if (ev.target !== m) return;
+      if (m.id === 'modalMapa') cerrarSelectorMapa();
+      else cerrarModales();
+    });
   });
+
+  document.getElementById('btnUsarPunto').addEventListener('click', confirmarPunto);
+  document.getElementById('btnCancelarPunto').addEventListener('click', cerrarSelectorMapa);
+  document.getElementById('btnAjustarUbicacion').addEventListener('click', ajustarUbicacionDetalle);
+  document.getElementById('btnInterpretarHorario').addEventListener('click', interpretarHorarioPegado);
 }
 
 function cambiarVista(vista) {
@@ -151,6 +161,7 @@ function crearTarjeta({ cafe, estado, km }) {
     <div class="meta">
       <span class="estado ${estado.estado}"></span>
       <span class="km"></span>
+      ${cafe.aproximada ? '<span class="aviso-aprox">ubicación por confirmar</span>' : ''}
     </div>`;
 
   // Usamos textContent (no innerHTML) para el texto que viene de internet:
@@ -432,7 +443,10 @@ function construirCafe(datos, horarios) {
     horarios: horarios || horariosVacios(),
     telefono: datos.telefono || null,
     web: datos.web || null,
-    notas: datos.notas || ''
+    notas: datos.notas || '',
+    // true = la ubicación la adivinó un buscador, no vino de un link exacto.
+    // Se muestra un aviso hasta que la confirmes en el mapa.
+    aproximada: !!datos.aproximada
   };
 }
 
@@ -456,13 +470,13 @@ async function importarPegado() {
   await procesarImportacion(filasDesdePegado(texto));
 }
 
-// Botón "Importar CSV de Takeout".
+// Botón de archivo: acepta el CSV de Takeout y el KML de Google My Maps.
 function importarArchivoCSV(ev) {
   const archivo = ev.target.files && ev.target.files[0];
   if (!archivo) return;
 
   const lector = new FileReader();
-  lector.onload = () => procesarImportacion(filasDesdeCSV(lector.result));
+  lector.onload = () => procesarImportacion(filasDesdeArchivo(lector.result, archivo.name));
   lector.onerror = () => estadoImport('No se pudo leer el archivo.');
   lector.readAsText(archivo, 'utf-8');
   ev.target.value = ''; // permite volver a elegir el mismo archivo
@@ -494,7 +508,10 @@ async function procesarImportacion(filas) {
   const cortos = [];
 
   for (const fila of filas) {
-    const coords = coordsDesdeTexto(fila.url) || coordsDesdeTexto(fila.nombre);
+    // El KML ya trae las coordenadas puestas; del CSV hay que sacarlas del link.
+    const coords = (isFinite(fila.lat) && isFinite(fila.lon))
+      ? { lat: fila.lat, lon: fila.lon }
+      : (coordsDesdeTexto(fila.url) || coordsDesdeTexto(fila.nombre));
     if (coords) ubicados.push(Object.assign({}, fila, coords));
     else if (esLinkCorto(fila.url)) cortos.push(fila);
     else sinCoordenadas.push(fila);
@@ -510,8 +527,18 @@ async function procesarImportacion(filas) {
     estadoImport(`Buscando por nombre ${i + 1} de ${aBuscar.length}: ${fila.nombre}...`);
     try {
       const encontrados = await buscarLugares(fila.nombre, miUbicacion);
-      if (encontrados.length > 0) ubicados.push(Object.assign({}, fila, encontrados[0]));
-      else noEncontradas.push(fila);
+      // Solo aceptamos el resultado si de verdad se parece a lo que buscabas.
+      // Si no, es peor el remedio: quedaría en tu lista una cafetería
+      // equivocada, con nombre creíble, y ni cuenta te darías.
+      const bueno = encontrados.find(c => esCandidatoRazonable(fila.nombre, c));
+      if (bueno) {
+        ubicados.push(Object.assign({}, fila, bueno, {
+          nombre: fila.nombre,   // respetamos el nombre de TU lista
+          aproximada: true       // ubicación adivinada: hay que confirmarla
+        }));
+      } else {
+        noEncontradas.push(fila);
+      }
     } catch (e) {
       noEncontradas.push(fila);
     }
@@ -573,6 +600,41 @@ async function procesarImportacion(filas) {
   }
 }
 
+/* -------------------------------------------------------------------------
+   esCandidatoRazonable(loQueBuscabas, loQueEncontro)
+   Dos filtros de sentido común antes de dar por buena una coincidencia:
+
+     1. Que compartan alguna palabra con peso. "Cafetería del barrio" NO es
+        "Café del Barrio Viejo" solo porque ambas digan "café" o "del".
+     2. Que no esté absurdamente lejos. Una lista de cafeterías guardadas es
+        de tu ciudad; si el resultado cae a 900 km, está mal.
+   ------------------------------------------------------------------------- */
+const PALABRAS_VACIAS = ['cafe', 'cafeteria', 'coffee', 'shop', 'the', 'el', 'la',
+  'los', 'las', 'de', 'del', 'y', 'en', 'mi', 'su'];
+
+function esCandidatoRazonable(buscado, candidato) {
+  const propias = palabrasConPeso(buscado);
+  const suyas = palabrasConPeso(candidato.nombre);
+  // Si el nombre buscado era solo palabras genéricas, no podemos comparar:
+  // lo damos por bueno y quedará marcado como aproximado.
+  if (propias.length > 0 && suyas.length > 0) {
+    if (!propias.some(p => suyas.includes(p))) return false;
+  }
+
+  if (miUbicacion) {
+    const km = distanciaKm(miUbicacion.lat, miUbicacion.lon, candidato.lat, candidato.lon);
+    if (km > 100) return false;
+  }
+  return true;
+}
+
+function palabrasConPeso(texto) {
+  return sinAcentos(texto)
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter(p => p.length > 2 && !PALABRAS_VACIAS.includes(p));
+}
+
 // Calcula un círculo que cubra todos los puntos importados, para pedirle a
 // Overpass las cafeterías de esa zona en UNA sola consulta.
 function zonaQueCubre(lugares) {
@@ -605,8 +667,14 @@ function emparejarConOSM(lugar, cafesOSM) {
   lugar.osmId = lugar.osmId || mejor.osmId;
 }
 
-// Las que no se pudieron ubicar se listan con su liga, para que las abras y
-// pegues de vuelta la dirección larga (la que sí trae coordenadas).
+/* -------------------------------------------------------------------------
+   Las que no se pudieron ubicar NO se pierden: quedan listadas con dos formas
+   de arreglarlas ahí mismo, sin volver a importar nada.
+
+     1. "Abrir en Maps" + pegar la dirección larga en su propia casilla.
+     2. "Poner en el mapa": tocas el punto exacto y listo. Este siempre
+        funciona, sin depender de ningún servidor.
+   ------------------------------------------------------------------------- */
 function mostrarPendientes(noEncontradas, cortos) {
   const ul = document.getElementById('pendientes');
   ul.innerHTML = '';
@@ -614,29 +682,144 @@ function mostrarPendientes(noEncontradas, cortos) {
 
   const explicar = document.createElement('li');
   explicar.className = 'nota-pendientes';
-  explicar.textContent = cortos.length
-    ? 'Estos son links cortos (maps.app.goo.gl): no traen coordenadas dentro. Ábrelos, y cuando Google Maps cargue, copia la dirección larga de la barra del navegador y pégala aquí arriba.'
-    : 'Estas no las encontré por nombre. Búscalas en Google Maps, copia la dirección larga de la barra del navegador y pégala aquí arriba.';
+  explicar.textContent = 'Estas no las pude ubicar. Arréglalas aquí mismo: ' +
+    'ábrelas en Maps y pega la dirección larga, o ponlas tú en el mapa.';
   ul.appendChild(explicar);
 
   for (const fila of [...cortos, ...noEncontradas]) {
-    const li = document.createElement('li');
-    const strong = document.createElement('strong');
-    // Si no tiene nombre (típico de los links cortos), mostramos la liga
-    // para que puedas identificar cuál es.
-    strong.textContent = fila.nombre || fila.url || '(sin nombre)';
-    li.appendChild(strong);
-
-    const a = document.createElement('a');
-    a.href = fila.url && /^https?:\/\//.test(fila.url)
-      ? fila.url
-      : 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(fila.nombre || '');
-    a.target = '_blank';
-    a.rel = 'noopener';
-    a.textContent = 'Abrir en Google Maps';
-    li.appendChild(a);
-    ul.appendChild(li);
+    ul.appendChild(filaPendiente(fila));
   }
+}
+
+function filaPendiente(fila) {
+  const li = document.createElement('li');
+
+  const strong = document.createElement('strong');
+  // Si no tiene nombre (típico de los links cortos), mostramos la liga
+  // para que puedas identificar cuál es.
+  strong.textContent = fila.nombre || fila.url || '(sin nombre)';
+  li.appendChild(strong);
+
+  const acciones = document.createElement('div');
+  acciones.className = 'acciones-pendiente';
+
+  const a = document.createElement('a');
+  a.href = fila.url && /^https?:\/\//.test(fila.url)
+    ? fila.url
+    : 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(fila.nombre || '');
+  a.target = '_blank';
+  a.rel = 'noopener';
+  a.textContent = 'Abrir en Maps';
+  acciones.appendChild(a);
+
+  const enMapa = document.createElement('button');
+  enMapa.className = 'btn secundario chico';
+  enMapa.textContent = 'Poner en el mapa';
+  enMapa.addEventListener('click', () => {
+    abrirSelectorMapa(fila.nombre, null, punto => {
+      resolverPendiente(li, fila, punto);
+    });
+  });
+  acciones.appendChild(enMapa);
+  li.appendChild(acciones);
+
+  // Casilla para pegar la dirección larga de esa cafetería en particular.
+  const pegar = document.createElement('input');
+  pegar.type = 'text';
+  pegar.placeholder = 'Pega aquí su link de Google Maps';
+  pegar.addEventListener('change', () => {
+    const punto = coordsDesdeTexto(pegar.value);
+    if (!punto) {
+      pegar.value = '';
+      pegar.placeholder = 'Ese link no trae coordenadas. Usa "Poner en el mapa".';
+      return;
+    }
+    resolverPendiente(li, fila, punto);
+  });
+  li.appendChild(pegar);
+
+  return li;
+}
+
+// Guarda una pendiente ya ubicada y la marca como resuelta en la lista.
+function resolverPendiente(li, fila, punto) {
+  const lugar = Object.assign({}, fila, punto);
+  if (yaExiste(lugar)) {
+    li.className = 'resuelta';
+    li.textContent = (fila.nombre || 'Esa cafetería') + ' — ya la tenías';
+    return;
+  }
+
+  cafeterias.push(construirCafe(lugar, horariosVacios()));
+  DB.guardar(cafeterias);
+  renderLista();
+
+  li.className = 'resuelta';
+  li.textContent = '✓ ' + (fila.nombre || 'Agregada') + ' — agregada, captúrale el horario';
+}
+
+/* -------------------------------------------------------------------------
+   Selector de mapa: tocas un punto y lo devuelve. Se usa para ubicar a mano
+   una cafetería que ningún buscador encuentra, y para corregir una mal puesta.
+   ------------------------------------------------------------------------- */
+let mapaSelector = null;
+let marcaSelector = null;
+let puntoElegido = null;
+let alConfirmarPunto = null;
+
+function abrirSelectorMapa(titulo, puntoInicial, alConfirmar) {
+  alConfirmarPunto = alConfirmar;
+  puntoElegido = puntoInicial || null;
+
+  document.getElementById('tituloSelector').textContent = titulo || 'Poner en el mapa';
+  document.getElementById('btnUsarPunto').disabled = !puntoElegido;
+  document.getElementById('modalMapa').hidden = false;
+
+  const centro = puntoInicial || miUbicacion || { lat: 25.6694, lon: -100.3098 };
+
+  if (!mapaSelector) {
+    mapaSelector = L.map('mapaSelector');
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(mapaSelector);
+
+    mapaSelector.on('click', ev => {
+      puntoElegido = { lat: ev.latlng.lat, lon: ev.latlng.lng };
+      ponerMarcaSelector();
+      document.getElementById('btnUsarPunto').disabled = false;
+    });
+  }
+
+  mapaSelector.setView([centro.lat, centro.lon], puntoInicial ? 18 : 16);
+  if (marcaSelector) { mapaSelector.removeLayer(marcaSelector); marcaSelector = null; }
+  if (puntoElegido) ponerMarcaSelector();
+
+  // El mapa se crea escondido, hay que avisarle que ya se ve.
+  setTimeout(() => mapaSelector.invalidateSize(), 60);
+}
+
+function ponerMarcaSelector() {
+  const icono = L.divIcon({
+    className: '',
+    html: '<div class="marcador cierra_pronto"></div>',
+    iconSize: [18, 18],
+    iconAnchor: [9, 9]
+  });
+  if (marcaSelector) mapaSelector.removeLayer(marcaSelector);
+  marcaSelector = L.marker([puntoElegido.lat, puntoElegido.lon], { icon: icono }).addTo(mapaSelector);
+}
+
+function confirmarPunto() {
+  if (!puntoElegido || !alConfirmarPunto) return;
+  const callback = alConfirmarPunto;
+  cerrarSelectorMapa();
+  callback(puntoElegido);
+}
+
+function cerrarSelectorMapa() {
+  document.getElementById('modalMapa').hidden = true;
+  alConfirmarPunto = null;
 }
 
 function estadoImport(mensaje) {
@@ -655,7 +838,8 @@ function abrirDetalle(id) {
 
   document.getElementById('detalleNombre').textContent = cafe.nombre;
   document.getElementById('detalleDireccion').textContent =
-    (cafe.direccion || '') + (km === null ? '' : ' · a ' + distanciaATexto(km));
+    (cafe.direccion || '') + (km === null ? '' : ' · a ' + distanciaATexto(km)) +
+    (cafe.aproximada ? ' · ⚠ ubicación adivinada por el buscador: confírmala con "Corregir ubicación"' : '');
   document.getElementById('detalleEstado').textContent = estado.texto;
   document.getElementById('detalleNotas').value = cafe.notas || '';
   document.getElementById('detalleComoLlegar').href = linkComoLlegar(cafe);
@@ -681,7 +865,49 @@ function abrirDetalle(id) {
     editor.appendChild(fila);
   }
 
+  document.getElementById('horarioPegado').value = '';
+  document.getElementById('estadoHorarioPegado').textContent = '';
+
   abrirModal('modalDetalle');
+}
+
+// Corrige la posición de una cafetería tocando el punto correcto en el mapa.
+function ajustarUbicacionDetalle() {
+  const cafe = cafeterias.find(c => c.id === idEnDetalle);
+  if (!cafe) return;
+
+  abrirSelectorMapa(cafe.nombre, { lat: cafe.lat, lon: cafe.lon }, punto => {
+    cafe.lat = punto.lat;
+    cafe.lon = punto.lon;
+    cafe.aproximada = false; // tú la pusiste: ya no hay nada que confirmar
+    DB.guardar(cafeterias);
+    renderLista();
+    abrirDetalle(cafe.id); // repinta el detalle con la distancia nueva
+    toast('Ubicación corregida');
+  });
+}
+
+/* -------------------------------------------------------------------------
+   Pegar el horario copiado de Google Maps y llenar los 7 días de un golpe.
+   No guarda solo: llena las casillas para que tú revises y le des Guardar.
+   ------------------------------------------------------------------------- */
+function interpretarHorarioPegado() {
+  const estado = document.getElementById('estadoHorarioPegado');
+  const horarios = parsearHorarioPegado(document.getElementById('horarioPegado').value);
+
+  if (!horarios) {
+    estado.textContent = 'No reconocí ningún día ahí. Copia la tabla completa de horarios de Google Maps (con los nombres de los días).';
+    return;
+  }
+
+  let dias = 0;
+  document.querySelectorAll('#editorHorario input').forEach(input => {
+    const turnos = horarios[Number(input.dataset.dia)];
+    input.value = rangosATexto(turnos);
+    if (turnos.length > 0) dias++;
+  });
+
+  estado.textContent = `Entendí ${dias} días con horario. Revísalos abajo y dale Guardar.`;
 }
 
 function guardarDetalle() {

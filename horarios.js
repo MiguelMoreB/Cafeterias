@@ -166,6 +166,131 @@ function diasDeLaRegla(regla) {
 }
 
 /* -------------------------------------------------------------------------
+   parsearHorarioPegado(texto)
+
+   Para cuando OpenStreetMap no tiene el horario (que es lo normal en las
+   cafeterías chiquitas): abres el lugar en Google Maps, despliegas la tabla
+   de horarios, la seleccionas, copias y la pegas aquí. Esta función la
+   entiende y llena los 7 días de un jalón.
+
+   Ejemplos que lee:
+     lunes        8:00–20:00
+     martes:      8 a.m.–8 p.m.
+     miércoles    8:00–13:00, 16:00–20:00
+     domingo      Cerrado
+     lunes a viernes 7:00 a 22:00
+     Abierto las 24 horas
+     Monday       8 AM–8 PM
+
+   Devuelve el objeto de horarios, o null si no entendió nada.
+   ------------------------------------------------------------------------- */
+
+// Cada día con todas las formas en que puede venir escrito.
+const NOMBRES_DIA = [
+  { dia: 0, patron: /\b(domingo|dom\.?|sunday|sun\.?)\b/i },
+  { dia: 1, patron: /\b(lunes|lun\.?|monday|mon\.?)\b/i },
+  { dia: 2, patron: /\b(martes|mar\.?|tuesday|tue\.?|tues\.?)\b/i },
+  { dia: 3, patron: /\b(mi[ée]rcoles|mi[ée]\.?|wednesday|wed\.?)\b/i },
+  { dia: 4, patron: /\b(jueves|jue\.?|thursday|thu\.?|thurs\.?)\b/i },
+  { dia: 5, patron: /\b(viernes|vie\.?|friday|fri\.?)\b/i },
+  { dia: 6, patron: /\b(s[áa]bado|s[áa]b\.?|saturday|sat\.?)\b/i }
+];
+
+function parsearHorarioPegado(texto) {
+  const DIA_ES = 'domingo|lunes|martes|mi[ée]rcoles|jueves|viernes|s[áa]bado';
+
+  const lineas = String(texto || '')
+    // Google a veces pega todo seguido: "lunes8:00–20:00martes8:00–20:00".
+    // 1) Cortamos línea cuando un día viene pegado DESPUÉS de un valor.
+    //    Ojo: solo después de un valor, para no partir "lunes a viernes".
+    .replace(new RegExp('(\\d|cerrado|closed|horas)(?=\\s*(?:' + DIA_ES + '))', 'gi'), '$1\n')
+    // 2) Separamos el día de su hora cuando vienen pegados ("lunes8:00").
+    .replace(new RegExp('(' + DIA_ES + ')(?=[\\dA-ZÁÉÍÓÚ])', 'gi'), '$1 ')
+    .split(/[\r\n]+/)
+    .map(l => l.trim())
+    .filter(Boolean);
+
+  const resultado = horariosVacios();
+  let entendimosAlgo = false;
+
+  for (const linea of lineas) {
+    const dias = diasDeLaLinea(linea);
+    if (dias.length === 0) continue;
+
+    let turnos;
+    if (/\b(cerrado|closed)\b/i.test(linea)) {
+      turnos = [];
+    } else if (/24\s*(horas|hours|h)\b|todo el d[ií]a|open 24/i.test(linea)) {
+      turnos = [{ desde: 0, hasta: 1440 }];
+    } else {
+      turnos = rangosConAmPm(linea);
+      if (turnos.length === 0) continue; // línea sin horas útiles: la saltamos
+    }
+
+    for (const d of dias) resultado[d] = turnos;
+    entendimosAlgo = true;
+  }
+
+  return entendimosAlgo ? resultado : null;
+}
+
+// Qué días menciona la línea. Entiende "lunes a viernes" como un rango.
+function diasDeLaLinea(linea) {
+  const encontrados = NOMBRES_DIA.filter(d => d.patron.test(linea)).map(d => d.dia);
+  if (encontrados.length === 0) return [];
+
+  // "lunes a viernes" / "lunes - viernes": rango de días.
+  const esRango = encontrados.length === 2 &&
+    /\b(a|to|hasta|-|–|—)\b/i.test(linea.replace(/\d{1,2}[:.]\d{2}/g, ''));
+  if (esRango) {
+    const dias = [];
+    let i = encontrados[0];
+    for (let paso = 0; paso < 7; paso++) {
+      dias.push(i);
+      if (i === encontrados[1]) break;
+      i = (i + 1) % 7;
+    }
+    return dias;
+  }
+  return encontrados;
+}
+
+// Saca los rangos de una línea, entendiendo a.m./p.m. además del formato 24h.
+function rangosConAmPm(linea) {
+  const marcador = '(a\\.?\\s*m\\.?|p\\.?\\s*m\\.?|am|pm)';
+  const hora = '(\\d{1,2})(?::(\\d{2}))?\\s*' + marcador + '?';
+  const separador = '\\s*(?:–|—|−|-|a|to|hasta)\\s*';
+  const regex = new RegExp(hora + separador + hora, 'gi');
+
+  const turnos = [];
+  let m;
+  while ((m = regex.exec(linea)) !== null) {
+    // m[1],m[2],m[3] = inicio (hora, minutos, a.m./p.m.)
+    // m[4],m[5],m[6] = fin
+    let desde = aMinutosConMarcador(m[1], m[2], m[3]);
+    let hasta = aMinutosConMarcador(m[4], m[5], m[6]);
+    if (desde === null || hasta === null) continue;
+
+    if (hasta <= desde) hasta += 1440; // cruza la medianoche
+    turnos.push({ desde, hasta });
+  }
+  return turnos.sort((a, b) => a.desde - b.desde);
+}
+
+function aMinutosConMarcador(h, min, marcador) {
+  let horas = Number(h);
+  const minutos = Number(min || 0);
+  if (!isFinite(horas) || horas > 24 || minutos > 59) return null;
+
+  if (marcador) {
+    const esTarde = /p/i.test(marcador);
+    if (esTarde && horas < 12) horas += 12;   // 8 p.m. -> 20
+    if (!esTarde && horas === 12) horas = 0;  // 12 a.m. -> 00
+  }
+  return horas * 60 + minutos;
+}
+
+/* -------------------------------------------------------------------------
    estadoAhora(horarios, ahora)
    El corazón de la app. Devuelve, por ejemplo:
 

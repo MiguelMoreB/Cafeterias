@@ -99,6 +99,43 @@ traen coordenadas dentro**; hay que abrirlos para que Google los expanda, y eso 
 navegador no nos deja hacerlo. La app los detecta y te los lista aparte con un botón
 para abrirlos, y de ahí copias la dirección larga.
 
+### Cuando Google no da las coordenadas, y OSM no da los horarios
+
+Es el caso normal, no la excepción. Estas son las tres salidas, de la más
+automática a la más manual:
+
+**Coordenadas**
+
+1. **KML de Google My Maps** (lo más automático). Entra a
+   <https://www.google.com/mymaps> → *Crear un mapa nuevo* → *Importar* → sube el CSV
+   de Takeout. El geocodificador de Google le pone coordenadas a cada lugar. Luego
+   *⋮ → Exportar a KML/KMZ* → marca *Exportar como KML* y sube ese archivo a la app.
+   Es usar el geocodificador de Google sin API key ni tarjeta.
+2. **Pegar el link largo** de cada cafetería (trae el punto exacto dentro).
+3. **"Poner en el mapa"**: tocas el punto y ya. Nunca falla y no depende de nadie.
+
+**Horarios**
+
+1. **Pegar el horario de Google Maps**: abres el lugar, despliegas la semana, la
+   copias y la pegas en el detalle → *Interpretar*. `parsearHorarioPegado()` entiende
+   formato 24 h y a. m./p. m., dos turnos por día, "Cerrado", "Abierto las 24 horas",
+   rangos tipo "lunes a viernes", español e inglés, y hasta el texto pegado sin saltos
+   de línea (`lunes8:00–20:00martes...`).
+2. **Buscar horario en OSM** (botón del detalle) para las que sí estén mapeadas.
+3. Escribirlo a mano, día por día.
+
+### Una decisión importante: nunca adivinar en silencio
+
+Cuando una fila del CSV no trae coordenadas, la app la busca por nombre. Durante las
+pruebas, "Cafetería del barrio" se agregó como **"Café del Barrio Viejo" de la Ciudad
+de México** — nombre creíble, lugar equivocado, y sin ningún aviso.
+
+Por eso ahora `esCandidatoRazonable()` exige dos cosas antes de aceptar una
+coincidencia: que compartan alguna palabra con peso (ignorando "café", "de", "el"...)
+y que no esté a más de 100 km de ti. Y si aun así se acepta, la cafetería queda
+marcada **"ubicación por confirmar"** en la lista hasta que la confirmes en el mapa.
+Es preferible dejarla pendiente a meterte un dato falso que parece bueno.
+
 ### Cómo se decide "abierta / cierra pronto / cerrada"
 
 En `horarios.js`. Todo se convierte a **minutos desde la medianoche** (08:00 = 480):

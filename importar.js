@@ -141,6 +141,56 @@ function filasDesdeCSV(texto) {
   return filas;
 }
 
+/* -------------------------------------------------------------------------
+   filasDesdeKML(texto)
+   Lee un archivo KML, que es el que exporta **Google My Maps**.
+
+   Por qué importa: el CSV de Takeout muchas veces trae URLs sin coordenadas
+   (solo un identificador interno de Google). El truco es pasar ese CSV por
+   My Maps (mymaps.google.com → Importar), donde el propio geocodificador de
+   Google le pone coordenadas a cada lugar, y luego exportar a KML. Ese KML
+   sí trae el punto exacto de cada cafetería:
+
+     <Placemark><name>Café X</name>
+       <Point><coordinates>-100.3098,25.6694,0</coordinates></Point>
+
+   Ojo con el orden: en KML va longitud PRIMERO y latitud después.
+   ------------------------------------------------------------------------- */
+function filasDesdeKML(texto) {
+  const doc = new DOMParser().parseFromString(texto, 'application/xml');
+  if (doc.getElementsByTagName('parsererror').length > 0) return [];
+
+  const filas = [];
+  for (const marca of doc.getElementsByTagName('Placemark')) {
+    const nombre = textoDeEtiqueta(marca, 'name');
+    const coords = textoDeEtiqueta(marca, 'coordinates');
+    if (!coords) continue;
+
+    const [lon, lat] = coords.trim().split(/\s+/)[0].split(',').map(Number);
+    if (!isFinite(lat) || !isFinite(lon)) continue;
+
+    filas.push({
+      nombre: nombre || 'Cafetería sin nombre',
+      url: '',
+      nota: textoDeEtiqueta(marca, 'description'),
+      lat,
+      lon
+    });
+  }
+  return filas;
+}
+
+function textoDeEtiqueta(elemento, etiqueta) {
+  const nodo = elemento.getElementsByTagName(etiqueta)[0];
+  return nodo ? nodo.textContent.trim() : '';
+}
+
+// Decide solo si lo que subiste es un KML o un CSV.
+function filasDesdeArchivo(texto, nombreArchivo) {
+  const esKML = /\.kml$/i.test(nombreArchivo || '') || /<kml[\s>]/i.test(texto.slice(0, 500));
+  return esKML ? filasDesdeKML(texto) : filasDesdeCSV(texto);
+}
+
 // Parte un CSV respetando las comillas. Devuelve un arreglo de filas,
 // y cada fila es un arreglo de columnas.
 function partirCSV(texto) {

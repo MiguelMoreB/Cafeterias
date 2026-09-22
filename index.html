@@ -109,8 +109,8 @@
         </p>
 
         <label class="btn secundario ancho archivo">
-          Importar CSV de Google Takeout
-          <input type="file" id="archivoCSV" accept=".csv,text/csv" hidden>
+          Importar CSV de Takeout o KML de My Maps
+          <input type="file" id="archivoCSV" accept=".csv,.kml,text/csv,application/vnd.google-earth.kml+xml" hidden>
         </label>
 
         <p id="estadoImport" class="ayuda"></p>
@@ -136,13 +136,29 @@
       <div class="enlaces">
         <a id="detalleComoLlegar" class="btn secundario" target="_blank" rel="noopener">Cómo llegar</a>
         <a id="detalleVerMapa" class="btn secundario" target="_blank" rel="noopener">Ver en Google Maps</a>
-        <button id="btnActualizarOSM" class="btn secundario">Actualizar horario</button>
+        <button id="btnAjustarUbicacion" class="btn secundario">Corregir ubicación</button>
+        <button id="btnActualizarOSM" class="btn secundario">Buscar horario en OSM</button>
       </div>
 
       <h3>Horario</h3>
+
+      <!-- La vía rápida: copiar la tabla de horarios de Google Maps y pegarla -->
+      <details class="bloque-pegar-horario">
+        <summary>Pegar el horario de Google Maps</summary>
+        <p class="ayuda">
+          Abre la cafetería en Google Maps, toca los horarios para desplegar la
+          semana completa, selecciónala y cópiala. Pégala aquí y dale
+          <em>Interpretar</em>: llena los 7 días solo.
+        </p>
+        <textarea id="horarioPegado" rows="4"
+          placeholder="lunes	8:00–20:00&#10;martes	8:00–20:00&#10;domingo	Cerrado"></textarea>
+        <button id="btnInterpretarHorario" class="btn ancho">Interpretar</button>
+        <p id="estadoHorarioPegado" class="ayuda"></p>
+      </details>
+
       <p class="ayuda">
-        Formato: <code>08:00-20:00</code> · dos turnos: <code>08:00-13:00, 16:00-20:00</code> ·
-        vacío = cerrado
+        O escríbelo a mano: <code>08:00-20:00</code> · dos turnos:
+        <code>08:00-13:00, 16:00-20:00</code> · vacío = cerrado
       </p>
       <div id="editorHorario" class="editor-horario"></div>
 
@@ -156,6 +172,24 @@
         <span class="espaciador"></span>
         <button class="btn secundario" data-cerrar>Cancelar</button>
         <button id="btnGuardar" class="btn">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MODAL: PONER UN PUNTO EN EL MAPA A MANO ============ -->
+  <!-- Va después del detalle a propósito: así se dibuja encima de él. -->
+  <div id="modalMapa" class="modal" hidden>
+    <div class="modal-caja">
+      <h2 id="tituloSelector">Poner en el mapa</h2>
+      <p class="ayuda">
+        Toca el punto exacto donde está la cafetería. Puedes acercar con los
+        botones + / − o con dos dedos.
+      </p>
+      <div id="mapaSelector"></div>
+      <div class="modal-pie">
+        <button id="btnCancelarPunto" class="btn secundario">Cancelar</button>
+        <span class="espaciador"></span>
+        <button id="btnUsarPunto" class="btn" disabled>Usar este punto</button>
       </div>
     </div>
   </div>

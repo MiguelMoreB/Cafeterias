@@ -110,6 +110,10 @@ select, input[type="text"], textarea {
 .estado.cerrada { color: var(--rojo); }
 .estado.desconocido { color: var(--gris); }
 .km { color: var(--suave); }
+.aviso-aprox {
+  background: #fff3d6; color: #8a6100; border: 1px solid #f0dcb8;
+  border-radius: 999px; padding: 1px 8px; font-size: 12px;
+}
 
 .vacio { text-align: center; color: var(--suave); padding: 40px 24px; line-height: 1.6; }
 
@@ -199,7 +203,24 @@ code { background: #efe7de; padding: 1px 5px; border-radius: 4px; font-size: 12p
 .bloque-importar .archivo { text-align: center; cursor: pointer; }
 .bloque-importar em { color: var(--texto); font-style: normal; font-weight: 600; }
 
+/* Bloque para pegar el horario copiado de Google Maps */
+.bloque-pegar-horario { margin: 8px 0 12px; }
+.bloque-pegar-horario summary {
+  cursor: pointer; font-size: 14px; font-weight: 600; color: var(--cafe); padding: 4px 0;
+}
+.bloque-pegar-horario textarea { width: 100%; font-size: 13px; }
+
+/* Mapa para poner un punto a mano */
+#mapaSelector {
+  height: 45vh; min-height: 260px; width: 100%;
+  border-radius: 10px; border: 1px solid var(--borde);
+}
+
 .pendientes { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
+.pendientes input[type="text"] { width: 100%; margin-top: 6px; font-size: 13px; }
+.pendientes li.resuelta { background: #e8f5ec; border-color: #b8e0c6; color: var(--verde); }
+.acciones-pendiente { display: flex; gap: 10px; align-items: center; margin-top: 4px; flex-wrap: wrap; }
+.btn.chico { padding: 5px 10px; font-size: 13px; }
 .pendientes li {
   background: #fff6e6; border: 1px solid #f0dcb8;
   border-radius: 8px; padding: 8px 10px; font-size: 13px;
