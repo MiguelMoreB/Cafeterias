@@ -95,6 +95,86 @@ function direccionCorta(r) {
 }
 
 /* -------------------------------------------------------------------------
+   buscarCafesCerca({lat, lon}, radioMetros)
+
+   Nominatim busca "direcciones", y es malo encontrando cafeterías locales
+   por su nombre. Overpass en cambio busca por ETIQUETA: le pedimos
+   directamente "todo lo que sea amenity=cafe a 3 km de aquí", y de paso nos
+   trae el horario en la misma respuesta. Por eso esta es la mejor forma de
+   armar tu lista.
+
+   Nota de diseño: NO filtramos por nombre aquí. Overpass tiene un índice por
+   etiqueta (amenity), pero buscar por nombre con expresiones regulares le
+   obliga a revisar todo y la consulta se cae por tiempo. Traemos las
+   cafeterías de la zona y filtramos por nombre ya en el teléfono, que es
+   instantáneo.
+   ------------------------------------------------------------------------- */
+async function buscarCafesCerca(centro, radioMetros = 3000) {
+  const alrededor = `around:${radioMetros},${centro.lat},${centro.lon}`;
+  // nwr = nodes + ways + relations (un café puede estar mapeado como un
+  // punto o como el polígono del edificio).
+  const consulta =
+    `[out:json][timeout:25];` +
+    `nwr["amenity"~"^(cafe|coffee_shop)$"]["name"](${alrededor});` +
+    `out center tags 80;`;
+
+  const datos = await consultarOverpass(consulta);
+  return (datos.elements || []).map(normalizarElementoOverpass).filter(Boolean);
+}
+
+// Todas las llamadas a Overpass pasan por aquí, para tratar los errores
+// en un solo lugar.
+async function consultarOverpass(consulta) {
+  await esperarTurno();
+
+  const resp = await fetch(OVERPASS, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: 'data=' + encodeURIComponent(consulta)
+  });
+
+  // 429 = "vas muy rápido"; 504 = el servidor está saturado. Son gratuitos y
+  // compartidos por mucha gente, así que pasa de vez en cuando.
+  if (resp.status === 429 || resp.status === 504) {
+    throw new Error('OSM_OCUPADO');
+  }
+  if (!resp.ok) throw new Error('Overpass respondió ' + resp.status);
+
+  const datos = await resp.json();
+  // Overpass a veces responde 200 pero con un aviso de que se quedó sin tiempo.
+  if (datos.remark && /timed out|runtime error/i.test(datos.remark)) {
+    throw new Error('OSM_OCUPADO');
+  }
+  return datos;
+}
+
+function normalizarElementoOverpass(el) {
+  const tags = el.tags || {};
+  // Los "way" y "relation" no tienen lat/lon propios: traen un centro.
+  const lat = el.lat != null ? el.lat : (el.center && el.center.lat);
+  const lon = el.lon != null ? el.lon : (el.center && el.center.lon);
+  if (lat == null || lon == null || !tags.name) return null;
+
+  const calle = [tags['addr:street'], tags['addr:housenumber']].filter(Boolean).join(' ');
+  const direccion = [calle, tags['addr:neighbourhood'] || tags['addr:suburb'], tags['addr:city']]
+    .filter(Boolean).join(', ');
+
+  return {
+    nombre: tags.name,
+    direccion: direccion,
+    direccionLarga: direccion || 'Sin dirección en OpenStreetMap',
+    lat: Number(lat),
+    lon: Number(lon),
+    osmType: el.type,
+    osmId: el.id,
+    openingHours: tags.opening_hours || null,
+    telefono: tags.phone || tags['contact:phone'] || null,
+    web: tags.website || tags['contact:website'] || null,
+    categoria: tags.amenity || 'cafe'
+  };
+}
+
+/* -------------------------------------------------------------------------
    detallesOSM('node', 123456)
    Nominatim a veces no trae el horario. Entonces le preguntamos a Overpass
    por ese lugar exacto y leemos sus etiquetas.
@@ -104,17 +184,8 @@ function direccionCorta(r) {
    ------------------------------------------------------------------------- */
 async function detallesOSM(osmType, osmId) {
   if (!osmType || !osmId) return null;
-  await esperarTurno();
 
-  const consulta = `[out:json][timeout:20];${osmType}(${osmId});out tags;`;
-  const resp = await fetch(OVERPASS, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: 'data=' + encodeURIComponent(consulta)
-  });
-  if (!resp.ok) throw new Error('Overpass respondió ' + resp.status);
-
-  const datos = await resp.json();
+  const datos = await consultarOverpass(`[out:json][timeout:20];${osmType}(${osmId});out tags;`);
   const elemento = (datos.elements || [])[0];
   if (!elemento) return null;
 

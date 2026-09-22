@@ -71,6 +71,7 @@ function conectarEventos() {
     ev.preventDefault();
     hacerBusqueda();
   });
+  document.getElementById('btnCerca').addEventListener('click', buscarCercaDeMi);
 
   document.getElementById('btnGuardar').addEventListener('click', guardarDetalle);
   document.getElementById('btnEliminar').addEventListener('click', eliminarDetalle);
@@ -266,10 +267,10 @@ function abrirModalAgregar() {
   document.getElementById('textoBusqueda').focus();
 }
 
+// Modo 1: buscar por nombre en todo el mundo (Nominatim).
 async function hacerBusqueda() {
   const texto = document.getElementById('textoBusqueda').value.trim();
   const estado = document.getElementById('estadoBusqueda');
-  const ul = document.getElementById('resultados');
 
   if (texto.length < 3) {
     estado.textContent = 'Escribe al menos 3 letras.';
@@ -277,35 +278,108 @@ async function hacerBusqueda() {
   }
 
   estado.textContent = 'Buscando en OpenStreetMap...';
-  ul.innerHTML = '';
+  document.getElementById('resultados').innerHTML = '';
 
   try {
     const lugares = await buscarLugares(texto, miUbicacion);
-    if (lugares.length === 0) {
-      estado.textContent = 'Sin resultados. Prueba con el nombre + la ciudad.';
-      return;
-    }
-    estado.textContent = 'Toca el lugar correcto para agregarlo:';
-
-    for (const lugar of lugares) {
-      const li = document.createElement('li');
-      const km = miUbicacion ? distanciaKm(miUbicacion.lat, miUbicacion.lon, lugar.lat, lugar.lon) : null;
-      const strong = document.createElement('strong');
-      strong.textContent = lugar.nombre;
-      const small = document.createElement('small');
-      small.textContent = lugar.direccionLarga + (km === null ? '' : ' · a ' + distanciaATexto(km));
-      li.append(strong, small);
-      li.addEventListener('click', () => agregarCafeteria(lugar));
-      ul.appendChild(li);
-    }
+    pintarResultados(lugares, 'Sin resultados por nombre. Si el lugar está cerca, prueba el botón 📍 de abajo.');
   } catch (e) {
     console.error(e);
-    estado.textContent = 'No se pudo conectar con OpenStreetMap. Revisa tu internet.';
+    estado.textContent = mensajeDeError(e);
   }
+}
+
+// Modo 2 (el bueno): traer las cafeterías mapeadas alrededor de ti.
+async function buscarCercaDeMi() {
+  const estado = document.getElementById('estadoBusqueda');
+  const texto = document.getElementById('textoBusqueda').value.trim();
+
+  if (!miUbicacion) {
+    estado.textContent = 'Primero toca 📍 en la barra de arriba para darme tu ubicación.';
+    return;
+  }
+
+  estado.textContent = 'Buscando cafeterías a 3 km a la redonda...';
+  document.getElementById('resultados').innerHTML = '';
+
+  try {
+    let lugares = await buscarCafesCerca(miUbicacion, 3000);
+
+    // El filtro por nombre lo hacemos aquí, no en el servidor (es instantáneo
+    // y no tumba la consulta). "cafe" encuentra también "Café".
+    if (texto) {
+      const buscado = sinAcentos(texto);
+      lugares = lugares.filter(l => sinAcentos(l.nombre).includes(buscado));
+    }
+
+    lugares.sort((a, b) =>
+      distanciaKm(miUbicacion.lat, miUbicacion.lon, a.lat, a.lon) -
+      distanciaKm(miUbicacion.lat, miUbicacion.lon, b.lat, b.lon));
+
+    pintarResultados(lugares, texto
+      ? 'Ninguna cafetería cercana se llama así. Borra el texto para verlas todas.'
+      : 'OpenStreetMap no tiene cafeterías mapeadas a 3 km de aquí.');
+  } catch (e) {
+    console.error(e);
+    estado.textContent = mensajeDeError(e);
+  }
+}
+
+// Pinta la lista de candidatos; al tocar uno, se agrega.
+function pintarResultados(lugares, mensajeVacio) {
+  const estado = document.getElementById('estadoBusqueda');
+  const ul = document.getElementById('resultados');
+  ul.innerHTML = '';
+
+  if (!lugares || lugares.length === 0) {
+    estado.textContent = mensajeVacio;
+    return;
+  }
+  estado.textContent = `${lugares.length} encontradas · toca la correcta para agregarla:`;
+
+  for (const lugar of lugares) {
+    const li = document.createElement('li');
+    const km = miUbicacion ? distanciaKm(miUbicacion.lat, miUbicacion.lon, lugar.lat, lugar.lon) : null;
+
+    const strong = document.createElement('strong');
+    strong.textContent = lugar.nombre;
+    const small = document.createElement('small');
+    small.textContent = [
+      lugar.direccionLarga || lugar.direccion,
+      km === null ? null : 'a ' + distanciaATexto(km),
+      lugar.openingHours ? 'con horario' : null
+    ].filter(Boolean).join(' · ');
+
+    li.append(strong, small);
+    li.addEventListener('click', () => agregarCafeteria(lugar));
+    ul.appendChild(li);
+  }
+}
+
+// "Café Orgánico" -> "cafe organico" (para comparar sin acentos ni mayúsculas)
+function sinAcentos(texto) {
+  return String(texto).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+
+function mensajeDeError(e) {
+  if (e && e.message === 'OSM_OCUPADO') {
+    return 'El servidor gratuito de OpenStreetMap está saturado ahorita. Espera medio minuto y vuelve a intentar.';
+  }
+  return 'No se pudo conectar con OpenStreetMap. Revisa tu internet.';
 }
 
 async function agregarCafeteria(lugar) {
   const estado = document.getElementById('estadoBusqueda');
+
+  // Si ya la tienes, no la duplicamos.
+  const repetida = cafeterias.find(c =>
+    (c.osmId && c.osmId === lugar.osmId && c.osmType === lugar.osmType) ||
+    (c.nombre === lugar.nombre && Math.abs(c.lat - lugar.lat) < 0.0005));
+  if (repetida) {
+    estado.textContent = '"' + repetida.nombre + '" ya está en tu lista.';
+    return;
+  }
+
   estado.textContent = 'Guardando y buscando su horario...';
 
   // 1) Lo que Nominatim ya nos dio.

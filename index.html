@@ -73,12 +73,18 @@
   <div id="modalAgregar" class="modal" hidden>
     <div class="modal-caja">
       <h2>Agregar cafetería</h2>
-      <p class="ayuda">Escribe el nombre y, si quieres, la colonia o ciudad.</p>
+      <p class="ayuda">
+        Lo que mejor funciona: activa tu ubicación 📍 y usa
+        <strong>Cafeterías cerca de mí</strong>. La búsqueda por nombre sirve
+        para lugares de otras ciudades.
+      </p>
 
       <form id="formBuscar" class="fila">
         <input type="text" id="textoBusqueda" placeholder="Ej. Café Nuevo León, Monterrey" autocomplete="off">
         <button type="submit" class="btn">Buscar</button>
       </form>
+
+      <button id="btnCerca" class="btn secundario ancho">📍 Cafeterías cerca de mí</button>
 
       <p id="estadoBusqueda" class="ayuda"></p>
       <ul id="resultados" class="resultados"></ul>

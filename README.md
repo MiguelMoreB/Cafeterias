@@ -40,6 +40,23 @@ El **trade-off honesto**: los horarios de OSM los captura la comunidad, así que
 lugares que no los tienen o los tienen viejos. Por eso cada cafetería tiene un
 **editor manual de horario**: lo capturas una vez y ya queda.
 
+### Las dos formas de agregar (y por qué hay dos)
+
+| Modo | Qué usa | Cuándo sirve |
+|---|---|---|
+| **📍 Cafeterías cerca de mí** | Overpass: *"dame todo lo que sea `amenity=cafe` a 3 km"* | El bueno. Busca por **etiqueta**, encuentra cafeterías locales y suele traer el horario en la misma respuesta. Necesita tu ubicación. |
+| **Buscar por nombre** | Nominatim (el buscador de direcciones) | Para lugares de **otra ciudad**, donde no estás parado. |
+
+Probándolo en el centro de Monterrey: el modo "cerca de mí" encontró **32** cafeterías;
+la búsqueda por nombre de las mismas, **ninguna**. Por eso el orden de la pantalla
+empuja al primero.
+
+Un detalle importante de rendimiento: el filtro por nombre del modo cercano se hace
+**en el teléfono**, no en el servidor. Overpass tiene índice por etiqueta, pero
+filtrar por nombre con expresiones regulares lo obliga a revisar todo y la consulta
+se cae por tiempo (devuelve 200 con un `remark`, no un error). La app detecta eso y
+el 429 ("vas muy rápido") y te avisa que el servidor gratuito está saturado.
+
 ### Cómo se decide "abierta / cierra pronto / cerrada"
 
 En `horarios.js`. Todo se convierte a **minutos desde la medianoche** (08:00 = 480):
@@ -92,9 +109,11 @@ ubicación (no es `https` ni `localhost`); para eso hay que publicarla.
 
 ## Cómo usarla
 
-1. **＋** → escribe el nombre de la cafetería + la ciudad → elige el resultado correcto.
-2. Si OpenStreetMap tenía horario, se guarda solo. Si no, se abre el editor para capturarlo.
-3. **📍** → da permiso de ubicación y aparecen los kilómetros y el orden por cercanía.
+1. **📍** (barra de arriba) → da permiso de ubicación: aparecen los kilómetros y el
+   orden por cercanía.
+2. **＋** → **📍 Cafeterías cerca de mí** → sale la lista de las que hay alrededor;
+   toca la que quieras agregar. (O escribe un nombre y luego el botón, para filtrar.)
+3. Si OpenStreetMap tenía horario, se guarda solo. Si no, se abre el editor para capturarlo.
 4. Pestaña **Mapa** → todas tus cafeterías con color según su estado.
 5. Toca una tarjeta → editar horario, notas, "Cómo llegar" o eliminar.
 

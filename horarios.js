@@ -76,7 +76,11 @@ function parsearRangos(texto) {
 // El camino inverso: [{desde:480,hasta:840}] -> "08:00-14:00"
 function rangosATexto(turnos) {
   if (!turnos || turnos.length === 0) return '';
-  return turnos.map(t => aTexto(t.desde) + '-' + aTexto(t.hasta)).join(', ');
+  return turnos.map(t => {
+    // Un cierre a medianoche se ve mejor como "24:00" que como "00:00".
+    const fin = t.hasta > 0 && t.hasta % 1440 === 0 ? '24:00' : aTexto(t.hasta);
+    return aTexto(t.desde) + '-' + fin;
+  }).join(', ');
 }
 
 /* -------------------------------------------------------------------------
