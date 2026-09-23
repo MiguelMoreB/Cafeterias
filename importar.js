@@ -194,10 +194,13 @@ function filasDesdeKML(texto) {
     const [lon, lat] = coords.trim().split(/\s+/)[0].split(',').map(Number);
     if (!isFinite(lat) || !isFinite(lon)) continue;
 
+    // En los KML de Google (y en los que genera herramientas/extraer-lista-google.py)
+    // la dirección viene en <description>. La usamos como dirección para que se
+    // vea en la tarjeta, que es donde sirve.
     filas.push({
       nombre: nombre || 'Cafetería sin nombre',
       url: '',
-      nota: textoDeEtiqueta(marca, 'description'),
+      direccion: textoDeEtiqueta(marca, 'description'),
       lat,
       lon
     });

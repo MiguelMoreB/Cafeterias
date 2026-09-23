@@ -99,6 +99,26 @@ traen coordenadas dentro**; hay que abrirlos para que Google los expanda, y eso 
 navegador no nos deja hacerlo. La app los detecta y te los lista aparte con un botón
 para abrirlos, y de ahí copias la dirección larga.
 
+### La forma que SÍ funciona: `herramientas/extraer-lista-google.py`
+
+Después de estrellarse contra Takeout y My Maps, la solución salió de otro lado.
+Cuando compartes una lista de Google Maps, la página que la muestra pide los datos a
+un endpoint interno de Google que **sí devuelve nombre, dirección y coordenadas** de
+cada lugar. El script los baja y arma un KML listo para importar:
+
+```bash
+python herramientas/extraer-lista-google.py "https://maps.app.goo.gl/TU_ENLACE" mi-lista.kml
+```
+
+Probado con la lista real de 58 cafeterías: **58 de 58**, con coordenadas exactas y
+dirección completa, en unos segundos. La lista debe estar compartida ("cualquiera con
+el enlace"); si es privada, Google no entrega nada.
+
+**Advertencia honesta:** ese endpoint es interno y no está documentado, así que Google
+puede cambiarlo cuando quiera y el script dejaría de servir. La app no depende de él
+(ni podría: el navegador bloquea llamar a google.com desde otra página). Es solo un
+atajo para no capturar 58 cafeterías a mano.
+
 ### Lo que se midió con una lista real (58 cafeterías de CDMX)
 
 No es teoría: se probó con un CSV de Takeout de verdad, y esto salió.
@@ -109,6 +129,7 @@ No es teoría: se probó con un CSV de Takeout de verdad, y esto salió.
 | Que My Maps las geocodificara | **0 de 58** (el KML salió con 60 marcas y ningún punto) |
 | Buscar cada nombre en Nominatim | **0 de 4** en la muestra, y tarda 1 segundo por cafetería |
 | Cruzarlas con las cafeterías mapeadas de la ciudad | **13 de 58** (8 exactas, 5 parciales), y solo **5 con horario** |
+| **Bajar la lista compartida con `extraer-lista-google.py`** | **58 de 58**, con coordenadas y dirección |
 | Captura guiada (link de Maps + horario pegado) | **58 de 58**, con coordenadas exactas y horario real |
 
 Por eso la importación **no intenta adivinar por omisión**: entra al instante y te
