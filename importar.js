@@ -249,6 +249,22 @@ function filasDesdeJSON(texto) {
   try { datos = JSON.parse(texto); } catch (e) { return []; }
 
   const elementos = datos.features || datos.items || (Array.isArray(datos) ? datos : []);
+
+  // Formato propio: el que genera herramientas/extraer-lista-google.py y el
+  // que saca exportarLista(). Es el único que trae los HORARIOS ya listos,
+  // así que se reconoce aparte y se pasa tal cual.
+  if (elementos.length > 0 && elementos.every(esCafeteriaCompleta)) {
+    return elementos.map(c => ({
+      nombre: c.nombre,
+      direccion: c.direccion || '',
+      lat: Number(c.lat),
+      lon: Number(c.lon),
+      horarios: normalizarHorarios(c.horarios),
+      notas: c.notas || '',
+      url: ''
+    }));
+  }
+
   const filas = [];
 
   for (const el of elementos) {
@@ -268,6 +284,27 @@ function filasDesdeJSON(texto) {
     }
   }
   return filas;
+}
+
+function esCafeteriaCompleta(c) {
+  return c && typeof c === 'object' && !Array.isArray(c) &&
+    typeof c.nombre === 'string' && isFinite(Number(c.lat)) && isFinite(Number(c.lon)) &&
+    c.horarios && typeof c.horarios === 'object';
+}
+
+// Deja los 7 días presentes y con turnos válidos (el JSON puede traer solo
+// algunos días, o el objeto vacío cuando Google no tenía horario).
+function normalizarHorarios(horarios) {
+  const limpio = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
+  for (let dia = 0; dia < 7; dia++) {
+    const turnos = (horarios && horarios[dia]) || [];
+    if (!Array.isArray(turnos)) continue;
+    limpio[dia] = turnos
+      .filter(t => t && isFinite(t.desde) && isFinite(t.hasta))
+      // Un cierre menor que la apertura cruza la medianoche.
+      .map(t => ({ desde: Number(t.desde), hasta: Number(t.hasta) <= Number(t.desde) ? Number(t.hasta) + 1440 : Number(t.hasta) }));
+  }
+  return limpio;
 }
 
 /* -------------------------------------------------------------------------

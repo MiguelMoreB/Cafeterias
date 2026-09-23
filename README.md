@@ -103,16 +103,34 @@ para abrirlos, y de ahí copias la dirección larga.
 
 Después de estrellarse contra Takeout y My Maps, la solución salió de otro lado.
 Cuando compartes una lista de Google Maps, la página que la muestra pide los datos a
-un endpoint interno de Google que **sí devuelve nombre, dirección y coordenadas** de
-cada lugar. El script los baja y arma un KML listo para importar:
+dos endpoints internos de Google:
+
+- `preview/entitylist/getlist` → los lugares de la lista, **con dirección y coordenadas**
+- `preview/place` → la ficha de cada lugar, **con la semana completa de horarios**
+
+El script recorre los dos y arma un JSON listo para importar:
 
 ```bash
-python herramientas/extraer-lista-google.py "https://maps.app.goo.gl/TU_ENLACE" mi-lista.kml
+python herramientas/extraer-lista-google.py "https://maps.app.goo.gl/TU_ENLACE" mi-lista.json
 ```
 
-Probado con la lista real de 58 cafeterías: **58 de 58**, con coordenadas exactas y
-dirección completa, en unos segundos. La lista debe estar compartida ("cualquiera con
-el enlace"); si es privada, Google no entrega nada.
+Probado con la lista real de 58 cafeterías: **58 de 58 ubicadas y 56 con horario**, en
+poco más de un minuto. La lista debe estar compartida ("cualquiera con el enlace"); si
+es privada, Google no entrega nada.
+
+Si le pones nombre `.kml` en vez de `.json`, escribe un KML: sirve para verlo en otras
+apps de mapas, pero **el KML no puede llevar horarios**.
+
+Dos detalles que costaron sangre:
+
+- Los identificadores de lugar (`cid`) son enteros de **64 bits con signo**. Para pedir
+  la ficha hay que pasarlos a hexadecimal sin signo: a los negativos se les suma 2^64.
+  Quitarles el `-` (que es lo primero que uno intenta) apunta a un lugar equivocado, y
+  Google responde con una ficha vacía en vez de con un error. Con ese fallo salían 32
+  de 58 horarios; corregido, 56.
+- La consola de Windows usa cp1252 y truena al imprimir nombres como `LŌU Brew Bar`.
+  Por eso los mensajes de pantalla pasan por `seguro()`; el archivo se guarda completo
+  en UTF-8.
 
 **Advertencia honesta:** ese endpoint es interno y no está documentado, así que Google
 puede cambiarlo cuando quiera y el script dejaría de servir. La app no depende de él
@@ -129,7 +147,7 @@ No es teoría: se probó con un CSV de Takeout de verdad, y esto salió.
 | Que My Maps las geocodificara | **0 de 58** (el KML salió con 60 marcas y ningún punto) |
 | Buscar cada nombre en Nominatim | **0 de 4** en la muestra, y tarda 1 segundo por cafetería |
 | Cruzarlas con las cafeterías mapeadas de la ciudad | **13 de 58** (8 exactas, 5 parciales), y solo **5 con horario** |
-| **Bajar la lista compartida con `extraer-lista-google.py`** | **58 de 58**, con coordenadas y dirección |
+| **Bajar la lista compartida con `extraer-lista-google.py`** | **58 de 58** ubicadas y **56 con horario** |
 | Captura guiada (link de Maps + horario pegado) | **58 de 58**, con coordenadas exactas y horario real |
 
 Por eso la importación **no intenta adivinar por omisión**: entra al instante y te

@@ -617,33 +617,41 @@ async function procesarImportacion(filas) {
   // pero sí hay que avisarlo: si no, parecería que OSM no tiene los horarios,
   // cuando en realidad el servidor estaba saturado.
   let avisoHorarios = '';
-  if (ubicados.length > 0) {
-    estadoImport(`Buscando horarios en OpenStreetMap de ${ubicados.length} lugares...`);
-    const zona = zonaQueCubre(ubicados);
-    try {
-      let cafesOSM;
+  const faltanHorarios = ubicados.filter(l => !l.horarios || !tieneAlgunTurno(l.horarios));
+
+  // Si el archivo ya venía con horarios (el JSON de la herramienta), no hay
+  // nada que preguntarle a OpenStreetMap.
+  //
+  // OJO con el tamaño de la consulta: antes esto pedía UNA zona que cubriera
+  // a todas, y con cafeterías repartidas por la ciudad salía un radio de 15 km
+  // que los servidores gratuitos rechazan (504). Por 2 cafeterías sin horario
+  // se quedaba colgada la importación de 58. Ahora se pregunta por cada una
+  // con un radio de 200 m, que responde al instante, y solo si son pocas.
+  const TOPE_CONSULTAS_HORARIO = 12;
+
+  if (faltanHorarios.length > 0 && faltanHorarios.length <= TOPE_CONSULTAS_HORARIO) {
+    for (let i = 0; i < faltanHorarios.length; i++) {
+      const lugar = faltanHorarios[i];
+      estadoImport(`Buscando horario en OpenStreetMap ${i + 1} de ${faltanHorarios.length}...`);
       try {
-        cafesOSM = await buscarCafesCerca(zona.centro, zona.radio);
+        const cerca = await buscarCafesCerca({ lat: lugar.lat, lon: lugar.lon }, 200, 20);
+        emparejarConOSM(lugar, cerca);
       } catch (e) {
-        if (e.message !== 'OSM_OCUPADO') throw e;
-        // Saturado: esperamos tantito y lo intentamos una vez más.
-        estadoImport('El servidor de OpenStreetMap está ocupado, reintentando...');
-        await new Promise(r => setTimeout(r, 4000));
-        cafesOSM = await buscarCafesCerca(zona.centro, zona.radio);
+        console.warn('OSM no respondió para ' + lugar.nombre, e);
+        avisoHorarios = ' · algunos horarios no se pudieron consultar';
       }
-      for (const lugar of ubicados) emparejarConOSM(lugar, cafesOSM);
-    } catch (e) {
-      console.warn('No se pudieron traer horarios de OSM', e);
-      avisoHorarios = e.message === 'OSM_OCUPADO'
-        ? ' · sin horarios: OpenStreetMap está saturado, vuelve a importar en un minuto y se completan'
-        : ' · sin horarios: no hubo conexión con OpenStreetMap';
     }
+  } else if (faltanHorarios.length > TOPE_CONSULTAS_HORARIO) {
+    avisoHorarios = ` · ${faltanHorarios.length} sin horario: usa "capturar una por una" o el botón de OpenStreetMap`;
   }
 
   // --- Paso 4: guardar.
   let agregadas = 0, repetidas = 0, conHorario = 0, completadas = 0;
   for (const lugar of ubicados) {
-    const horarios = parsearOpeningHours(lugar.openingHours) || horariosVacios();
+    // Si el archivo ya traía horarios (JSON de la herramienta), mandan esos.
+    const horarios = (lugar.horarios && tieneAlgunTurno(lugar.horarios))
+      ? lugar.horarios
+      : (parsearOpeningHours(lugar.openingHours) || horariosVacios());
     const repetida = yaExiste(lugar);
 
     if (repetida) {
@@ -779,18 +787,6 @@ function palabrasConPeso(texto) {
     .replace(/[^a-z0-9\s]/g, ' ')
     .split(/\s+/)
     .filter(p => p.length > 2 && !PALABRAS_VACIAS.includes(p));
-}
-
-// Calcula un círculo que cubra todos los puntos importados, para pedirle a
-// Overpass las cafeterías de esa zona en UNA sola consulta.
-function zonaQueCubre(lugares) {
-  const lat = lugares.reduce((s, l) => s + l.lat, 0) / lugares.length;
-  const lon = lugares.reduce((s, l) => s + l.lon, 0) / lugares.length;
-  const centro = { lat, lon };
-  const masLejos = Math.max(...lugares.map(l => distanciaKm(lat, lon, l.lat, l.lon)));
-  // Mínimo 500 m, máximo 15 km (más allá la consulta tarda demasiado).
-  const radio = Math.min(15000, Math.max(500, Math.round(masLejos * 1000) + 300));
-  return { centro, radio };
 }
 
 // Busca la cafetería de OSM que esté prácticamente encima del punto de
