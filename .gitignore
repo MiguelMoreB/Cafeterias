@@ -7,3 +7,7 @@ desktop.ini
 # Por si algún día agregas una llave o configuración local: NO se sube
 config.local.js
 *.key
+
+# Cache de Python
+__pycache__/
+*.pyc

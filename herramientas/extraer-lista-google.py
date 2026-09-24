@@ -113,7 +113,33 @@ def cid_a_hex(cid):
     return format(n, 'x')
 
 
-def horario_del_lugar(cid):
+def horario_del_lugar(cid, intentos=6):
+    """Pide la semana varias veces si hace falta.
+
+    Google responde de forma INCONSISTENTE: con la misma petición, a veces
+    manda los 7 días y a veces solo el de hoy (comprobado pidiendo dos veces
+    seguidas el mismo lugar). Por eso reintentamos y vamos juntando los días
+    que falten, en vez de quedarnos con la primera respuesta.
+    """
+    semana = {}
+    for intento in range(intentos):
+        try:
+            nuevos = _pedir_semana(cid, intento)
+        except Exception:
+            if intento == intentos - 1:
+                raise
+            time.sleep(1)
+            continue
+        for dia, turnos in nuevos.items():
+            if dia not in semana or (turnos and not semana[dia]):
+                semana[dia] = turnos
+        if len(semana) >= 7:
+            break
+        time.sleep(0.6)
+    return semana
+
+
+def _pedir_semana(cid, variante=0):
     """Devuelve {0..6: [{'desde': min, 'hasta': min}]} o {} si no hay datos.
 
     La ficha trae la semana así:
@@ -121,8 +147,24 @@ def horario_del_lugar(cid):
     o, si ese día cierra:
         ["domingo",7,[2026,9,27],[["Cerrado"]],0,2]
     """
-    pb = ('!1m14!1s0x0:0x%s!3m12!1m3!1d1000!2d-99.19!3d19.39!2m3!1f0!2f0!3f0'
-          '!3m2!1i1024!2i768!4f13.1!13m1!2b1' % cid_a_hex(cid))
+    # OJO: con una petición mínima, Google a veces devuelve SOLO el día de hoy
+    # (pasó con "Café Galeno": 1 día en vez de 7). Hay que mandar el bloque
+    # largo, el mismo que manda Google al abrir la ficha, para que incluya la
+    # semana completa. Estos números son opciones internas suyas; no hay
+    # documentación, se copiaron de una petición real.
+    # Alternar el encuadre del mapa entre intentos cambia la respuesta: con
+    # unas coordenadas manda la semana y con otras solo hoy. No hay logica
+    # aparente, asi que se prueban las dos.
+    encuadre = ('!1d60213!2d-99.195!3d19.398' if variante % 2 == 0
+                else '!1d60213.08825986231!2d-99.1952896!3d19.398656')
+    pb = ('!1m14!1s0x0:0x{cid}!3m12!1m3{encuadre}'
+          '!2m3!1f0.0!2f0.0!3f0.0!3m2!1i1024!2i768!4f13.1!12m4!2m3!1i360!2i120!4i8'
+          '!13m57!2m2!1i203!2i100!3m2!2i4!5b1!6m6!1m2!1i86!2i86!1m2!1i408!2i240'
+          '!7m33!1m3!1e1!2b0!3e3!1m3!1e2!2b1!3e2!1m3!1e2!2b0!3e3!1m3!1e8!2b0!3e3'
+          '!1m3!1e10!2b0!3e3!1m3!1e10!2b1!3e2!1m3!1e10!2b0!3e4!1m3!1e9!2b1!3e2!2b1!9b0'
+          '!15m8!1m7!1m2!1m1!1e2!2m2!1i195!2i195!3i20!21m0!22m1!1e81'
+          '!30m8!3b1!6m2!1b1!2b1!7m2!1e3!2b1!9b1!34m5!7b1!10b1!14b1!15m1!1b0'
+          ).format(cid=cid_a_hex(cid), encuadre=encuadre)
     crudo, _ = pedir(URL_FICHA + urllib.parse.quote(pb, safe=''))
     if '[' not in crudo:
         return {}
