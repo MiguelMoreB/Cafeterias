@@ -65,7 +65,16 @@ function conectarEventos() {
   document.getElementById('btnUbicacion').addEventListener('click', pedirUbicacion);
   document.getElementById('btnAgregar').addEventListener('click', abrirModalAgregar);
   document.getElementById('soloAbiertas').addEventListener('change', renderLista);
+  document.getElementById('ocultarVisitadas').addEventListener('change', renderLista);
   document.getElementById('ordenar').addEventListener('change', renderLista);
+
+  // El buscador filtra conforme escribes: es instantáneo porque la lista ya
+  // está en el teléfono, no se consulta nada por internet.
+  document.getElementById('buscarEnLista').addEventListener('input', renderLista);
+  document.getElementById('btnLimpiarBusqueda').addEventListener('click', () => {
+    document.getElementById('buscarEnLista').value = '';
+    renderLista();
+  });
 
   document.getElementById('formBuscar').addEventListener('submit', ev => {
     ev.preventDefault();
@@ -126,7 +135,9 @@ function cambiarVista(vista) {
 function renderLista() {
   const ul = document.getElementById('lista');
   const soloAbiertas = document.getElementById('soloAbiertas').checked;
+  const ocultarVisitadas = document.getElementById('ocultarVisitadas').checked;
   const orden = document.getElementById('ordenar').value;
+  const busqueda = sinAcentos(document.getElementById('buscarEnLista').value.trim());
 
   // A cada cafetería le calculamos AHORA su estado y su distancia.
   let items = cafeterias.map(c => ({
@@ -135,12 +146,27 @@ function renderLista() {
     km: miUbicacion ? distanciaKm(miUbicacion.lat, miUbicacion.lon, c.lat, c.lon) : null
   }));
 
+  // El buscador mira nombre, dirección y notas, sin acentos ni mayúsculas:
+  // "cafe organico" encuentra "Café Orgánico".
+  if (busqueda) {
+    items = items.filter(i => sinAcentos(
+      i.cafe.nombre + ' ' + (i.cafe.direccion || '') + ' ' + (i.cafe.notas || '')
+    ).includes(busqueda));
+  }
+
   if (soloAbiertas) {
     items = items.filter(i => i.estado.estado === 'abierta' || i.estado.estado === 'cierra_pronto');
+  }
+  if (ocultarVisitadas) {
+    items = items.filter(i => !i.cafe.visitada);
   }
 
   const rango = { abierta: 0, cierra_pronto: 1, desconocido: 2, cerrada: 3 };
   items.sort((a, b) => {
+    // Las visitadas siempre hasta abajo, sin importar el orden elegido.
+    const visitadas = (a.cafe.visitada ? 1 : 0) - (b.cafe.visitada ? 1 : 0);
+    if (visitadas !== 0) return visitadas;
+
     if (orden === 'nombre') return a.cafe.nombre.localeCompare(b.cafe.nombre);
     if (orden === 'estado') {
       const d = rango[a.estado.estado] - rango[b.estado.estado];
@@ -156,20 +182,45 @@ function renderLista() {
   ul.innerHTML = '';
   for (const item of items) ul.appendChild(crearTarjeta(item));
 
+  actualizarContador(items.length, busqueda);
+  document.getElementById('btnLimpiarBusqueda').hidden = !busqueda;
   document.getElementById('vacio').hidden = cafeterias.length > 0;
   if (mapa) pintarMarcadores();
 }
 
+// Línea de resumen: cuántas se están viendo y cuántas llevas visitadas.
+function actualizarContador(mostradas, busqueda) {
+  const contador = document.getElementById('contador');
+  if (cafeterias.length === 0) { contador.textContent = ''; return; }
+
+  const visitadas = cafeterias.filter(c => c.visitada).length;
+  const partes = [];
+
+  if (mostradas === 0) {
+    partes.push(busqueda ? `Ninguna coincide con "${document.getElementById('buscarEnLista').value.trim()}"`
+                         : 'Ninguna cumple los filtros');
+  } else if (mostradas < cafeterias.length) {
+    partes.push(`${mostradas} de ${cafeterias.length}`);
+  } else {
+    partes.push(cafeterias.length === 1 ? '1 cafetería' : `${cafeterias.length} cafeterías`);
+  }
+
+  if (visitadas > 0) partes.push(visitadas === 1 ? '1 visitada' : `${visitadas} visitadas`);
+  contador.textContent = partes.join(' · ');
+}
+
 function crearTarjeta({ cafe, estado, km }) {
   const li = document.createElement('li');
-  li.className = 'tarjeta ' + estado.estado;
+  li.className = 'tarjeta ' + estado.estado + (cafe.visitada ? ' visitada' : '');
   li.innerHTML = `
-    <h3></h3>
-    <p class="dir"></p>
-    <div class="meta">
-      <span class="estado ${estado.estado}"></span>
-      <span class="km"></span>
-      ${cafe.aproximada ? '<span class="aviso-aprox">ubicación por confirmar</span>' : ''}
+    <div class="tarjeta-cuerpo">
+      <h3></h3>
+      <p class="dir"></p>
+      <div class="meta">
+        <span class="estado ${estado.estado}"></span>
+        <span class="km"></span>
+        ${cafe.aproximada ? '<span class="aviso-aprox">ubicación por confirmar</span>' : ''}
+      </div>
     </div>`;
 
   // Usamos textContent (no innerHTML) para el texto que viene de internet:
@@ -179,8 +230,35 @@ function crearTarjeta({ cafe, estado, km }) {
   li.querySelector('.estado').textContent = estado.texto;
   li.querySelector('.km').textContent = km === null ? '' : '· a ' + distanciaATexto(km);
 
-  li.addEventListener('click', () => abrirDetalle(cafe.id));
+  li.querySelector('.tarjeta-cuerpo').addEventListener('click', () => abrirDetalle(cafe.id));
+  li.appendChild(casillaVisitada(cafe));
   return li;
+}
+
+/* -------------------------------------------------------------------------
+   La casilla de "ya la visité". Va fuera del cuerpo de la tarjeta y detiene
+   el clic (stopPropagation): si no, marcarla abriría también el detalle.
+   ------------------------------------------------------------------------- */
+function casillaVisitada(cafe) {
+  const etiqueta = document.createElement('label');
+  etiqueta.className = 'visitada-caja';
+  etiqueta.title = cafe.visitada ? 'Ya la visitaste' : 'Marcar como visitada';
+
+  const casilla = document.createElement('input');
+  casilla.type = 'checkbox';
+  casilla.checked = !!cafe.visitada;
+
+  casilla.addEventListener('click', ev => ev.stopPropagation());
+  casilla.addEventListener('change', () => {
+    cafe.visitada = casilla.checked;
+    DB.guardar(cafeterias);
+    renderLista(); // se reordena sola y se va hasta abajo
+    toast(cafe.visitada ? '✓ Visitada: ' + cafe.nombre : 'Quitada de visitadas');
+  });
+
+  etiqueta.appendChild(casilla);
+  etiqueta.addEventListener('click', ev => ev.stopPropagation());
+  return etiqueta;
 }
 
 /* ============================= 5. Mapa ================================== */
@@ -452,6 +530,7 @@ function construirCafe(datos, horarios) {
     telefono: datos.telefono || null,
     web: datos.web || null,
     notas: datos.notas || '',
+    visitada: !!datos.visitada,
     // true = la ubicación la adivinó un buscador, no vino de un link exacto.
     // Se muestra un aviso hasta que la confirmes en el mapa.
     aproximada: !!datos.aproximada

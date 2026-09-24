@@ -302,6 +302,21 @@ ubicación (no es `https` ni `localhost`); para eso hay que publicarla.
 
 ---
 
+## Buscador y cafeterías visitadas
+
+Cuando la lista pasa de 50, hace falta poder encontrar una rápido y llevar la cuenta
+de a cuáles ya fuiste.
+
+- **Buscador**: filtra conforme escribes, mirando **nombre, dirección y notas**.
+  Ignora acentos y mayúsculas (`sonambulo` encuentra `Sonāmbulo Café`, `condesa`
+  encuentra las 6 de esa colonia). Es instantáneo porque la lista ya está en el
+  teléfono: no consulta nada por internet.
+- **Casilla de visitada**: al marcarla, la cafetería se va **hasta abajo de la lista**
+  sin importar el orden elegido, se ve apagada y con el nombre tachado. La casilla
+  detiene el clic (`stopPropagation`) para que marcarla no abra también el detalle.
+- **"Ocultar visitadas"** las quita de la vista, y el contador de arriba lleva la
+  cuenta: *"58 cafeterías · 4 visitadas"*.
+
 ## Cómo usarla
 
 1. **📍** (barra de arriba) → da permiso de ubicación: aparecen los kilómetros y el

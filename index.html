@@ -38,9 +38,17 @@
   <main>
     <!-- ---------- VISTA LISTA ---------- -->
     <section id="vistaLista">
+      <div class="buscador">
+        <input type="search" id="buscarEnLista" placeholder="🔍 Buscar por nombre, colonia o calle" autocomplete="off">
+        <button id="btnLimpiarBusqueda" class="btn-limpiar" hidden title="Limpiar">✕</button>
+      </div>
+
       <div class="filtros">
         <label class="filtro">
           <input type="checkbox" id="soloAbiertas"> Solo abiertas ahora
+        </label>
+        <label class="filtro">
+          <input type="checkbox" id="ocultarVisitadas"> Ocultar visitadas
         </label>
         <select id="ordenar">
           <option value="distancia">Ordenar: más cercanas</option>
@@ -48,6 +56,8 @@
           <option value="estado">Ordenar: abiertas primero</option>
         </select>
       </div>
+
+      <p id="contador" class="contador"></p>
 
       <ul id="lista" class="lista"></ul>
 

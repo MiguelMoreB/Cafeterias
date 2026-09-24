@@ -70,11 +70,35 @@ body {
 }
 .tab.activa { color: var(--cafe); font-weight: 600; border-bottom-color: var(--cafe); }
 
+/* ---------- Buscador ---------- */
+.buscador { position: relative; padding: 12px 16px 0; }
+.buscador input {
+  width: 100%; padding: 11px 36px 11px 12px;
+  border: 1px solid var(--borde); border-radius: 10px;
+  font-size: 15px; background: var(--tarjeta);
+}
+.btn-limpiar {
+  position: absolute; right: 24px; top: 20px;
+  width: 26px; height: 26px; border: none; border-radius: 50%;
+  background: var(--borde); color: var(--texto);
+  font-size: 13px; cursor: pointer; display: grid; place-items: center;
+}
+/* Igual que con los modales: sin esta línea, el display:grid de arriba le
+   gana al atributo hidden y el botón se vería siempre. */
+.btn-limpiar[hidden] { display: none; }
+
+.contador {
+  margin: 0; padding: 0 16px 8px;
+  font-size: 13px; color: var(--suave);
+}
+.contador:empty { display: none; }
+
 /* ---------- Filtros ---------- */
 .filtros {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 12px; padding: 12px 16px; font-size: 14px;
+  display: flex; align-items: center; flex-wrap: wrap;
+  gap: 8px 14px; padding: 10px 16px; font-size: 14px;
 }
+.filtros select { margin-left: auto; }
 .filtro { display: flex; align-items: center; gap: 6px; color: var(--suave); }
 select, input[type="text"], textarea {
   font: inherit; padding: 8px 10px;
@@ -92,7 +116,21 @@ select, input[type="text"], textarea {
   border-radius: 12px;
   padding: 12px 14px;
   cursor: pointer;
+  display: flex; align-items: flex-start; gap: 10px;
 }
+.tarjeta-cuerpo { flex: 1; min-width: 0; }
+
+/* Las visitadas se ven apagadas y con el nombre tachado */
+.tarjeta.visitada { opacity: .55; border-left-color: var(--gris); }
+.tarjeta.visitada h3 { text-decoration: line-through; }
+
+/* La casilla: cuadro grande para que se pueda tocar con el dedo */
+.visitada-caja {
+  display: grid; place-items: center;
+  width: 40px; min-height: 40px; margin: -4px -6px 0 0;
+  cursor: pointer;
+}
+.visitada-caja input { width: 20px; height: 20px; accent-color: var(--cafe); cursor: pointer; }
 .tarjeta.abierta { border-left-color: var(--verde); }
 .tarjeta.cierra_pronto { border-left-color: var(--ambar); }
 .tarjeta.cerrada { border-left-color: var(--rojo); }
