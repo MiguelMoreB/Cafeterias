@@ -201,6 +201,12 @@ code { background: #efe7de; padding: 1px 5px; border-radius: 4px; font-size: 12p
   width: 100%; font-size: 13px; font-family: ui-monospace, monospace;
 }
 .bloque-importar .archivo { text-align: center; cursor: pointer; }
+.opcion-import {
+  display: block; margin: 12px 0 4px; cursor: pointer;
+  color: var(--texto); font-size: 14px;
+}
+.opcion-import .ayuda { display: block; margin: 2px 0 0 22px; }
+.opcion-import input { margin-right: 6px; }
 .bloque-importar em { color: var(--texto); font-style: normal; font-weight: 600; }
 
 /* Bloque para pegar el horario copiado de Google Maps */

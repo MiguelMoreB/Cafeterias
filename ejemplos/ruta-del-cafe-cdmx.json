@@ -1,0 +1,2827 @@
+[
+ {
+  "nombre": "Café Galeno",
+  "direccion": "Calz. de Tlalpan 4456, Belisario Domínguez Secc 16, Tlalpan, 14080 Ciudad de México, CDMX",
+  "lat": 19.2954272,
+  "lon": -99.15465549999999,
+  "horarios": {
+   "4": [
+    {
+     "desde": 420,
+     "hasta": 1260
+    }
+   ],
+   "5": [
+    {
+     "desde": 420,
+     "hasta": 1260
+    }
+   ],
+   "6": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "0": [],
+   "1": [
+    {
+     "desde": 420,
+     "hasta": 1260
+    }
+   ],
+   "2": [
+    {
+     "desde": 420,
+     "hasta": 1260
+    }
+   ],
+   "3": [
+    {
+     "desde": 420,
+     "hasta": 1260
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Tres Tigres Felices",
+  "direccion": "Av. P.º de la Reforma 369-Loc 15, Cuauhtémoc, 06500 Ciudad de México, CDMX",
+  "lat": 19.4266634,
+  "lon": -99.16946879999999,
+  "horarios": {
+   "4": [
+    {
+     "desde": 480,
+     "hasta": 1080
+    }
+   ],
+   "5": [
+    {
+     "desde": 480,
+     "hasta": 1080
+    }
+   ],
+   "6": [
+    {
+     "desde": 540,
+     "hasta": 1020
+    }
+   ],
+   "0": [],
+   "1": [
+    {
+     "desde": 480,
+     "hasta": 1080
+    }
+   ],
+   "2": [
+    {
+     "desde": 480,
+     "hasta": 1080
+    }
+   ],
+   "3": [
+    {
+     "desde": 480,
+     "hasta": 1080
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Latte Latte Coffee Crafters",
+  "direccion": "Campos Elíseos 414, Polanco II Secc, Miguel Hidalgo, 11530 Ciudad de México, CDMX",
+  "lat": 19.4300262,
+  "lon": -99.2039053,
+  "horarios": {
+   "4": [
+    {
+     "desde": 420,
+     "hasta": 1260
+    }
+   ],
+   "5": [
+    {
+     "desde": 420,
+     "hasta": 1260
+    }
+   ],
+   "6": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "0": [
+    {
+     "desde": 480,
+     "hasta": 900
+    }
+   ],
+   "1": [
+    {
+     "desde": 420,
+     "hasta": 1260
+    }
+   ],
+   "2": [
+    {
+     "desde": 420,
+     "hasta": 1260
+    }
+   ],
+   "3": [
+    {
+     "desde": 420,
+     "hasta": 1260
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Cafecito Llorón",
+  "direccion": "C. Eligio Ancona 359-Loc 6, Plutarco Elías Calles, Miguel Hidalgo, 11350 Ciudad de México, CDMX",
+  "lat": 19.4542189,
+  "lon": -99.1664211,
+  "horarios": {
+   "4": [
+    {
+     "desde": 420,
+     "hasta": 1260
+    }
+   ],
+   "5": [
+    {
+     "desde": 420,
+     "hasta": 1260
+    }
+   ],
+   "6": [
+    {
+     "desde": 420,
+     "hasta": 900
+    }
+   ],
+   "0": [],
+   "1": [
+    {
+     "desde": 420,
+     "hasta": 1260
+    }
+   ],
+   "2": [
+    {
+     "desde": 420,
+     "hasta": 1260
+    }
+   ],
+   "3": [
+    {
+     "desde": 420,
+     "hasta": 1260
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Nativos Café",
+  "direccion": "Av. Wilfrido Massieu 278, Planetario Lindavista, Gustavo A. Madero, 07739 Ciudad de México, CDMX",
+  "lat": 19.4961405,
+  "lon": -99.141072,
+  "horarios": {
+   "4": [
+    {
+     "desde": 420,
+     "hasta": 1200
+    }
+   ],
+   "5": [
+    {
+     "desde": 420,
+     "hasta": 1200
+    }
+   ],
+   "6": [
+    {
+     "desde": 480,
+     "hasta": 900
+    }
+   ],
+   "0": [
+    {
+     "desde": 480,
+     "hasta": 900
+    }
+   ],
+   "1": [
+    {
+     "desde": 420,
+     "hasta": 1200
+    }
+   ],
+   "2": [
+    {
+     "desde": 420,
+     "hasta": 1200
+    }
+   ],
+   "3": [
+    {
+     "desde": 420,
+     "hasta": 1200
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Binomio Café",
+  "direccion": "Suchil 109-Edif B Local H, El Rosario, Coyoacán, 04380 Ciudad de México, CDMX",
+  "lat": 19.3259661,
+  "lon": -99.1439692,
+  "horarios": {
+   "4": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "5": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "6": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "0": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "1": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "2": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "3": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "1990 Casa de café",
+  "direccion": "Av. Fernando 49, Álamos, Benito Juárez, 03400 Ciudad de México, CDMX",
+  "lat": 19.4003566,
+  "lon": -99.13889089999999,
+  "horarios": {
+   "4": [
+    {
+     "desde": 510,
+     "hasta": 1290
+    }
+   ],
+   "5": [
+    {
+     "desde": 510,
+     "hasta": 1290
+    }
+   ],
+   "6": [
+    {
+     "desde": 510,
+     "hasta": 1290
+    }
+   ],
+   "0": [
+    {
+     "desde": 510,
+     "hasta": 1290
+    }
+   ],
+   "1": [
+    {
+     "desde": 510,
+     "hasta": 1290
+    }
+   ],
+   "2": [
+    {
+     "desde": 510,
+     "hasta": 1290
+    }
+   ],
+   "3": [
+    {
+     "desde": 510,
+     "hasta": 1290
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "MORE BARRA DE CAFE",
+  "direccion": "Gumersindo Esquer, José Sotero Castañeda esquina, Asturias, Cuauhtémoc, 06890 Ciudad de México, CDMX",
+  "lat": 19.4066485,
+  "lon": -99.13155979999999,
+  "horarios": {
+   "4": [
+    {
+     "desde": 420,
+     "hasta": 1260
+    }
+   ],
+   "5": [
+    {
+     "desde": 420,
+     "hasta": 1260
+    }
+   ],
+   "6": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ],
+   "0": [
+    {
+     "desde": 600,
+     "hasta": 900
+    }
+   ],
+   "1": [
+    {
+     "desde": 420,
+     "hasta": 1260
+    }
+   ],
+   "2": [
+    {
+     "desde": 420,
+     "hasta": 1260
+    }
+   ],
+   "3": [
+    {
+     "desde": 420,
+     "hasta": 1260
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Gradios Deli-Café",
+  "direccion": "Luis Moya 115-Loc 2, Colonia Centro, Centro, Cuauhtémoc, 06000 Ciudad de México, CDMX",
+  "lat": 19.427614,
+  "lon": -99.1461628,
+  "horarios": {
+   "4": [
+    {
+     "desde": 420,
+     "hasta": 1260
+    }
+   ],
+   "5": [
+    {
+     "desde": 420,
+     "hasta": 1260
+    }
+   ],
+   "6": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ],
+   "0": [
+    {
+     "desde": 540,
+     "hasta": 960
+    }
+   ],
+   "1": [
+    {
+     "desde": 420,
+     "hasta": 1260
+    }
+   ],
+   "2": [
+    {
+     "desde": 420,
+     "hasta": 1260
+    }
+   ],
+   "3": [
+    {
+     "desde": 420,
+     "hasta": 1260
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Geros Cafetería y Pastelería de Especialidad",
+  "direccion": "C. James Sullivan 55, San Rafael, Cuauhtémoc, 06470 Ciudad de México, CDMX",
+  "lat": 19.4335132,
+  "lon": -99.16168019999999,
+  "horarios": {
+   "4": [
+    {
+     "desde": 480,
+     "hasta": 1230
+    }
+   ],
+   "5": [
+    {
+     "desde": 480,
+     "hasta": 1230
+    }
+   ],
+   "6": [
+    {
+     "desde": 510,
+     "hasta": 1230
+    }
+   ],
+   "0": [
+    {
+     "desde": 540,
+     "hasta": 930
+    }
+   ],
+   "1": [
+    {
+     "desde": 480,
+     "hasta": 1230
+    }
+   ],
+   "2": [
+    {
+     "desde": 480,
+     "hasta": 1230
+    }
+   ],
+   "3": [
+    {
+     "desde": 480,
+     "hasta": 1230
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "CAFÉ DONDÉ",
+  "direccion": "Emilio Dondé 7-Loc 1, Colonia Centro, Centro, Cuauhtémoc, 06000 Ciudad de México, CDMX",
+  "lat": 19.4308132,
+  "lon": -99.1508551,
+  "horarios": {
+   "4": [
+    {
+     "desde": 510,
+     "hasta": 1170
+    }
+   ],
+   "5": [
+    {
+     "desde": 510,
+     "hasta": 1170
+    }
+   ],
+   "6": [
+    {
+     "desde": 510,
+     "hasta": 1170
+    }
+   ],
+   "0": [
+    {
+     "desde": 510,
+     "hasta": 930
+    }
+   ],
+   "1": [
+    {
+     "desde": 510,
+     "hasta": 1170
+    }
+   ],
+   "2": [
+    {
+     "desde": 510,
+     "hasta": 1170
+    }
+   ],
+   "3": [
+    {
+     "desde": 510,
+     "hasta": 1170
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Centrina Café",
+  "direccion": "Plaza de San Juan 15, Colonia Centro, Centro, Cuauhtémoc, 06070 Ciudad de México, CDMX",
+  "lat": 19.4298385,
+  "lon": -99.14388199999999,
+  "horarios": {
+   "4": [
+    {
+     "desde": 480,
+     "hasta": 1140
+    }
+   ],
+   "5": [
+    {
+     "desde": 480,
+     "hasta": 1140
+    }
+   ],
+   "6": [
+    {
+     "desde": 480,
+     "hasta": 1140
+    }
+   ],
+   "0": [
+    {
+     "desde": 480,
+     "hasta": 1140
+    }
+   ],
+   "1": [
+    {
+     "desde": 480,
+     "hasta": 1140
+    }
+   ],
+   "2": [
+    {
+     "desde": 480,
+     "hasta": 1140
+    }
+   ],
+   "3": [
+    {
+     "desde": 480,
+     "hasta": 1140
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Deseo Café de Especialidad",
+  "direccion": "Mérida 26, Roma Nte., Cuauhtémoc, 06700 Ciudad de México, CDMX",
+  "lat": 19.423029,
+  "lon": -99.15825509999999,
+  "horarios": {
+   "4": [
+    {
+     "desde": 480,
+     "hasta": 1230
+    }
+   ],
+   "5": [
+    {
+     "desde": 480,
+     "hasta": 1230
+    }
+   ],
+   "6": [
+    {
+     "desde": 480,
+     "hasta": 1230
+    }
+   ],
+   "0": [
+    {
+     "desde": 480,
+     "hasta": 1020
+    }
+   ],
+   "1": [
+    {
+     "desde": 480,
+     "hasta": 1230
+    }
+   ],
+   "2": [
+    {
+     "desde": 480,
+     "hasta": 1230
+    }
+   ],
+   "3": [
+    {
+     "desde": 480,
+     "hasta": 1230
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Calixto café con-sentido Roma Nte.",
+  "direccion": "San Luis Potosí 136 Roma Norte Cuauhtémoc ciudad de México, Cuauhtémoc, 06700 CDMX",
+  "lat": 19.4137359,
+  "lon": -99.16100019999999,
+  "horarios": {
+   "4": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ],
+   "5": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ],
+   "6": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ],
+   "0": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ],
+   "1": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ],
+   "2": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ],
+   "3": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Mise En Print cafe and culinary shop",
+  "direccion": "Guanajuato 28-b, Roma Nte., Cuauhtémoc, 06700 Ciudad de México, CDMX",
+  "lat": 19.4174845,
+  "lon": -99.1556785,
+  "horarios": {
+   "4": [
+    {
+     "desde": 540,
+     "hasta": 1080
+    }
+   ],
+   "5": [
+    {
+     "desde": 540,
+     "hasta": 1080
+    }
+   ],
+   "6": [
+    {
+     "desde": 540,
+     "hasta": 1080
+    }
+   ],
+   "0": [
+    {
+     "desde": 540,
+     "hasta": 1080
+    }
+   ],
+   "1": [
+    {
+     "desde": 540,
+     "hasta": 1080
+    }
+   ],
+   "2": [
+    {
+     "desde": 540,
+     "hasta": 1080
+    }
+   ],
+   "3": [
+    {
+     "desde": 540,
+     "hasta": 1080
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Blend Station",
+  "direccion": "Puebla 237, Roma Nte., Cuauhtémoc, 06700 Ciudad de México, CDMX",
+  "lat": 19.4218433,
+  "lon": -99.16691379999999,
+  "horarios": {
+   "4": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "5": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "6": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "0": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "1": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "2": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "3": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Q' Pedro Pablo / Café de especialidad y Cerveza artesanal",
+  "direccion": "Durango 108, Roma Nte., Cuauhtémoc, 06700 Ciudad de México, CDMX",
+  "lat": 19.420731399999998,
+  "lon": -99.161594,
+  "horarios": {
+   "4": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "5": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "6": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "0": [
+    {
+     "desde": 600,
+     "hasta": 1020
+    }
+   ],
+   "1": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "2": [],
+   "3": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Anvil Café de especialidad",
+  "direccion": "Zamora 79-Loc C, Colonia Condesa, Cuauhtémoc, 06140 Ciudad de México, CDMX",
+  "lat": 19.4166638,
+  "lon": -99.17806259999999,
+  "horarios": {
+   "4": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "5": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "6": [
+    {
+     "desde": 540,
+     "hasta": 1200
+    }
+   ],
+   "0": [],
+   "1": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "2": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "3": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "BOOX BREW",
+  "direccion": "Francisco Márquez 149-Loc A, Colonia Condesa, Cuauhtémoc, 06140 Ciudad de México, CDMX",
+  "lat": 19.412760799999997,
+  "lon": -99.18029589999999,
+  "horarios": {
+   "4": [
+    {
+     "desde": 420,
+     "hasta": 1200
+    }
+   ],
+   "5": [
+    {
+     "desde": 420,
+     "hasta": 1200
+    }
+   ],
+   "6": [
+    {
+     "desde": 480,
+     "hasta": 1020
+    }
+   ],
+   "0": [],
+   "1": [
+    {
+     "desde": 420,
+     "hasta": 1200
+    }
+   ],
+   "2": [
+    {
+     "desde": 420,
+     "hasta": 1200
+    }
+   ],
+   "3": [
+    {
+     "desde": 420,
+     "hasta": 1200
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Fuego & Café",
+  "direccion": "Av. Mazatlan 132-Loc A, Colonia Condesa, Cuauhtémoc, 06140 Ciudad de México, CDMX",
+  "lat": 19.4118428,
+  "lon": -99.1782341,
+  "horarios": {
+   "4": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "5": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "6": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "0": [
+    {
+     "desde": 540,
+     "hasta": 900
+    }
+   ],
+   "1": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "2": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "3": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Kaie Café",
+  "direccion": "Gral. Benjamín Hill 188, Hipódromo, Cuauhtémoc, 06100 Ciudad de México, CDMX",
+  "lat": 19.4072492,
+  "lon": -99.1756825,
+  "horarios": {
+   "4": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "5": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "6": [
+    {
+     "desde": 540,
+     "hasta": 1140
+    }
+   ],
+   "0": [
+    {
+     "desde": 540,
+     "hasta": 1140
+    }
+   ],
+   "1": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "2": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "3": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Abyssinia Coffee & Elixir Bar",
+  "direccion": "Calle Mexicali 20, Hipódromo Condesa, Cuauhtémoc, 06100 Ciudad de México, CDMX",
+  "lat": 19.4078292,
+  "lon": -99.1730346,
+  "horarios": {
+   "4": [
+    {
+     "desde": 510,
+     "hasta": 1140
+    }
+   ],
+   "5": [
+    {
+     "desde": 510,
+     "hasta": 1140
+    }
+   ],
+   "6": [
+    {
+     "desde": 510,
+     "hasta": 1140
+    }
+   ],
+   "0": [
+    {
+     "desde": 540,
+     "hasta": 1140
+    }
+   ],
+   "1": [
+    {
+     "desde": 510,
+     "hasta": 1140
+    }
+   ],
+   "2": [
+    {
+     "desde": 510,
+     "hasta": 1140
+    }
+   ],
+   "3": [
+    {
+     "desde": 510,
+     "hasta": 1140
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Esencial Barra de Café Condesa",
+  "direccion": "Campeche 356, Hipódromo, Cuauhtémoc, 06100 Ciudad de México, CDMX",
+  "lat": 19.409264399999998,
+  "lon": -99.1740755,
+  "horarios": {
+   "4": [
+    {
+     "desde": 420,
+     "hasta": 1230
+    }
+   ],
+   "5": [
+    {
+     "desde": 420,
+     "hasta": 1230
+    }
+   ],
+   "6": [
+    {
+     "desde": 480,
+     "hasta": 1230
+    }
+   ],
+   "0": [
+    {
+     "desde": 540,
+     "hasta": 990
+    }
+   ],
+   "1": [
+    {
+     "desde": 420,
+     "hasta": 1230
+    }
+   ],
+   "2": [
+    {
+     "desde": 420,
+     "hasta": 1230
+    }
+   ],
+   "3": [
+    {
+     "desde": 420,
+     "hasta": 1230
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "LŌU Brew Bar",
+  "direccion": "Sombrerete 522, Hipódromo Condesa, Cuauhtémoc, 06170 Ciudad de México, CDMX",
+  "lat": 19.4082966,
+  "lon": -99.1789818,
+  "horarios": {
+   "4": [
+    {
+     "desde": 420,
+     "hasta": 1140
+    }
+   ],
+   "5": [
+    {
+     "desde": 420,
+     "hasta": 1140
+    }
+   ],
+   "6": [
+    {
+     "desde": 480,
+     "hasta": 1140
+    }
+   ],
+   "0": [
+    {
+     "desde": 480,
+     "hasta": 1080
+    }
+   ],
+   "1": [
+    {
+     "desde": 420,
+     "hasta": 1140
+    }
+   ],
+   "2": [
+    {
+     "desde": 420,
+     "hasta": 1140
+    }
+   ],
+   "3": [
+    {
+     "desde": 420,
+     "hasta": 1140
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Capricho Blanco Café",
+  "direccion": "C. Chilpancingo 7, Hipódromo, Cuauhtémoc, 06100 Ciudad de México, CDMX",
+  "lat": 19.410048,
+  "lon": -99.17035469999999,
+  "horarios": {
+   "4": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "5": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "6": [
+    {
+     "desde": 480,
+     "hasta": 1230
+    }
+   ],
+   "0": [
+    {
+     "desde": 480,
+     "hasta": 1170
+    }
+   ],
+   "1": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "2": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "3": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Tulipán y Media luna",
+  "direccion": "C. Linares 1D, Roma Sur, Cuauhtémoc, 06760 Cuauhtémoc, CDMX",
+  "lat": 19.4073161,
+  "lon": -99.16084459999999,
+  "horarios": {
+   "4": [
+    {
+     "desde": 480,
+     "hasta": 1140
+    }
+   ],
+   "5": [
+    {
+     "desde": 480,
+     "hasta": 1140
+    }
+   ],
+   "6": [
+    {
+     "desde": 540,
+     "hasta": 1080
+    }
+   ],
+   "0": [],
+   "1": [
+    {
+     "desde": 480,
+     "hasta": 1140
+    }
+   ],
+   "2": [
+    {
+     "desde": 480,
+     "hasta": 1140
+    }
+   ],
+   "3": [
+    {
+     "desde": 480,
+     "hasta": 1140
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Sonāmbulo Café",
+  "direccion": "C. Chilpancingo 35, Hipódromo, Cuauhtémoc, 06100 Ciudad de México, CDMX",
+  "lat": 19.4083035,
+  "lon": -99.1699628,
+  "horarios": {
+   "4": [
+    {
+     "desde": 450,
+     "hasta": 1170
+    }
+   ],
+   "5": [
+    {
+     "desde": 450,
+     "hasta": 1170
+    }
+   ],
+   "6": [
+    {
+     "desde": 480,
+     "hasta": 1140
+    }
+   ],
+   "0": [
+    {
+     "desde": 480,
+     "hasta": 1020
+    }
+   ],
+   "1": [
+    {
+     "desde": 450,
+     "hasta": 1170
+    }
+   ],
+   "2": [
+    {
+     "desde": 450,
+     "hasta": 1170
+    }
+   ],
+   "3": [
+    {
+     "desde": 450,
+     "hasta": 1170
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Café Memorias de un Barista",
+  "direccion": "Puerto México 40-Loc c, Roma Sur, Cuauhtémoc, 06760 Ciudad de México, CDMX",
+  "lat": 19.4033023,
+  "lon": -99.1646478,
+  "horarios": {
+   "4": [
+    {
+     "desde": 480,
+     "hasta": 1230
+    }
+   ],
+   "5": [
+    {
+     "desde": 480,
+     "hasta": 1230
+    }
+   ],
+   "6": [
+    {
+     "desde": 480,
+     "hasta": 1230
+    }
+   ],
+   "0": [
+    {
+     "desde": 600,
+     "hasta": 1230
+    }
+   ],
+   "1": [
+    {
+     "desde": 480,
+     "hasta": 1230
+    }
+   ],
+   "2": [
+    {
+     "desde": 480,
+     "hasta": 1230
+    }
+   ],
+   "3": [
+    {
+     "desde": 480,
+     "hasta": 1230
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Almanegra Café",
+  "direccion": "C. de la Prosperidad 37, Escandón II Secc, Miguel Hidalgo, 11800 Ciudad de México, CDMX",
+  "lat": 19.4026554,
+  "lon": -99.1749521,
+  "horarios": {
+   "4": [
+    {
+     "desde": 450,
+     "hasta": 1260
+    }
+   ],
+   "5": [
+    {
+     "desde": 450,
+     "hasta": 1260
+    }
+   ],
+   "6": [
+    {
+     "desde": 450,
+     "hasta": 1260
+    }
+   ],
+   "0": [
+    {
+     "desde": 450,
+     "hasta": 1260
+    }
+   ],
+   "1": [
+    {
+     "desde": 450,
+     "hasta": 1260
+    }
+   ],
+   "2": [
+    {
+     "desde": 450,
+     "hasta": 1260
+    }
+   ],
+   "3": [
+    {
+     "desde": 450,
+     "hasta": 1260
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Brewers Cafetería Experimental",
+  "direccion": "Tuxpan 74, Roma Sur, Cuauhtémoc, 06760 Ciudad de México, CDMX",
+  "lat": 19.403302399999998,
+  "lon": -99.1669246,
+  "horarios": {
+   "4": [
+    {
+     "desde": 450,
+     "hasta": 1245
+    }
+   ],
+   "5": [
+    {
+     "desde": 450,
+     "hasta": 1245
+    }
+   ],
+   "6": [
+    {
+     "desde": 450,
+     "hasta": 1170
+    }
+   ],
+   "0": [
+    {
+     "desde": 450,
+     "hasta": 1170
+    }
+   ],
+   "1": [
+    {
+     "desde": 450,
+     "hasta": 1245
+    }
+   ],
+   "2": [
+    {
+     "desde": 450,
+     "hasta": 1245
+    }
+   ],
+   "3": [
+    {
+     "desde": 450,
+     "hasta": 1245
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Camino a Comala: Café de Especialidad",
+  "direccion": "Av. Baja California 145, Roma Sur, Cuauhtémoc, 06760 Cuauhtémoc, CDMX",
+  "lat": 19.406273199999998,
+  "lon": -99.1636229,
+  "horarios": {
+   "4": [
+    {
+     "desde": 480,
+     "hasta": 1320
+    }
+   ],
+   "5": [
+    {
+     "desde": 480,
+     "hasta": 1320
+    }
+   ],
+   "6": [
+    {
+     "desde": 480,
+     "hasta": 1320
+    }
+   ],
+   "0": [
+    {
+     "desde": 480,
+     "hasta": 1320
+    }
+   ],
+   "1": [
+    {
+     "desde": 480,
+     "hasta": 1320
+    }
+   ],
+   "2": [
+    {
+     "desde": 480,
+     "hasta": 1320
+    }
+   ],
+   "3": [
+    {
+     "desde": 480,
+     "hasta": 1320
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "QCAFÉ Barra de especialidad Del Valle",
+  "direccion": "Av. Coyoacán 206, código 2, Col del Valle Nte, Benito Juárez, 03100 Ciudad de México, CDMX",
+  "lat": 19.3953295,
+  "lon": -99.16641639999999,
+  "horarios": {
+   "4": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ],
+   "5": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ],
+   "6": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ],
+   "0": [
+    {
+     "desde": 540,
+     "hasta": 1200
+    }
+   ],
+   "1": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ],
+   "2": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ],
+   "3": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Alma Café",
+  "direccion": "Heriberto Frías 205, Narvarte Poniente, Benito Juárez, 03020 Ciudad de México, CDMX",
+  "lat": 19.4000123,
+  "lon": -99.1593733,
+  "horarios": {
+   "4": [
+    {
+     "desde": 480,
+     "hasta": 1320
+    }
+   ],
+   "5": [
+    {
+     "desde": 480,
+     "hasta": 1320
+    }
+   ],
+   "6": [
+    {
+     "desde": 540,
+     "hasta": 1320
+    }
+   ],
+   "0": [
+    {
+     "desde": 540,
+     "hasta": 900
+    }
+   ],
+   "1": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ],
+   "2": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ],
+   "3": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "KAAB CAFÉ",
+  "direccion": "Av. Insurgentes Sur 598, Local A, Col. Del Valle Norte, Del Valle Norte, Benito Juárez, 03100 Ciudad de México, CDMX",
+  "lat": 19.3975057,
+  "lon": -99.17094709999999,
+  "horarios": {
+   "4": [
+    {
+     "desde": 480,
+     "hasta": 1080
+    }
+   ],
+   "5": [
+    {
+     "desde": 480,
+     "hasta": 1080
+    }
+   ],
+   "6": [
+    {
+     "desde": 540,
+     "hasta": 840
+    }
+   ],
+   "0": [],
+   "1": [
+    {
+     "desde": 480,
+     "hasta": 1080
+    }
+   ],
+   "2": [
+    {
+     "desde": 480,
+     "hasta": 1080
+    }
+   ],
+   "3": [
+    {
+     "desde": 480,
+     "hasta": 1080
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Kinoo CoffeeBar",
+  "direccion": "Altadena 54, Nápoles, Benito Juárez, 03810 Ciudad de México, CDMX",
+  "lat": 19.395860799999998,
+  "lon": -99.17366129999999,
+  "horarios": {
+   "4": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ],
+   "5": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ],
+   "6": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ],
+   "0": [
+    {
+     "desde": 540,
+     "hasta": 1200
+    }
+   ],
+   "1": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ],
+   "2": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ],
+   "3": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Bajo Sombra -barra de café-",
+  "direccion": "Diag. San Antonio 1507-Loc B, Narvarte Oriente, Benito Juárez, 03023 Ciudad de México, CDMX",
+  "lat": 19.397387,
+  "lon": -99.153325,
+  "horarios": {
+   "4": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "5": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "6": [
+    {
+     "desde": 510,
+     "hasta": 1200
+    }
+   ],
+   "0": [
+    {
+     "desde": 540,
+     "hasta": 900
+    }
+   ],
+   "1": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "2": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "3": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "CAFÉ FUERTE",
+  "direccion": "Xola 1301-Loc 6, Narvarte Poniente, Benito Juárez, 03020 Ciudad de México, CDMX",
+  "lat": 19.3956291,
+  "lon": -99.15516,
+  "horarios": {
+   "4": [
+    {
+     "desde": 480,
+     "hasta": 1320
+    }
+   ],
+   "5": [
+    {
+     "desde": 480,
+     "hasta": 1320
+    }
+   ],
+   "6": [
+    {
+     "desde": 510,
+     "hasta": 1320
+    }
+   ],
+   "0": [],
+   "1": [
+    {
+     "desde": 480,
+     "hasta": 1320
+    }
+   ],
+   "2": [
+    {
+     "desde": 480,
+     "hasta": 1320
+    }
+   ],
+   "3": [
+    {
+     "desde": 480,
+     "hasta": 1320
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Paradigma Café",
+  "direccion": "La Morena 962, Narvarte Poniente, Benito Juárez, 03020 Ciudad de México, CDMX",
+  "lat": 19.398525799999998,
+  "lon": -99.15463129999999,
+  "horarios": {
+   "4": [
+    {
+     "desde": 495,
+     "hasta": 1200
+    }
+   ],
+   "5": [
+    {
+     "desde": 495,
+     "hasta": 1200
+    }
+   ],
+   "6": [
+    {
+     "desde": 555,
+     "hasta": 1200
+    }
+   ],
+   "0": [
+    {
+     "desde": 555,
+     "hasta": 1020
+    }
+   ],
+   "1": [
+    {
+     "desde": 495,
+     "hasta": 1200
+    }
+   ],
+   "2": [
+    {
+     "desde": 495,
+     "hasta": 1200
+    }
+   ],
+   "3": [
+    {
+     "desde": 495,
+     "hasta": 1200
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "7 café",
+  "direccion": "C. Yácatas 291, Narvarte Poniente, Benito Juárez, 03020 Ciudad de México, CDMX",
+  "lat": 19.3909002,
+  "lon": -99.1557131,
+  "horarios": {
+   "4": [
+    {
+     "desde": 540,
+     "hasta": 1200
+    }
+   ],
+   "5": [
+    {
+     "desde": 540,
+     "hasta": 1200
+    }
+   ],
+   "6": [
+    {
+     "desde": 600,
+     "hasta": 1200
+    }
+   ],
+   "0": [
+    {
+     "desde": 600,
+     "hasta": 960
+    }
+   ],
+   "1": [
+    {
+     "desde": 540,
+     "hasta": 1200
+    }
+   ],
+   "2": [
+    {
+     "desde": 540,
+     "hasta": 1200
+    }
+   ],
+   "3": [
+    {
+     "desde": 540,
+     "hasta": 1200
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Máneken cafe",
+  "direccion": "Av. Cuauhtémoc 905, Narvarte Poniente, Benito Juárez, 03020 Ciudad de México, CDMX",
+  "lat": 19.3860803,
+  "lon": -99.15741899999999,
+  "horarios": {
+   "4": [
+    {
+     "desde": 420,
+     "hasta": 1260
+    }
+   ],
+   "5": [
+    {
+     "desde": 420,
+     "hasta": 1260
+    }
+   ],
+   "6": [
+    {
+     "desde": 480,
+     "hasta": 960
+    }
+   ],
+   "0": [],
+   "1": [
+    {
+     "desde": 420,
+     "hasta": 1260
+    }
+   ],
+   "2": [
+    {
+     "desde": 420,
+     "hasta": 1260
+    }
+   ],
+   "3": [
+    {
+     "desde": 420,
+     "hasta": 1260
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Cultumkali café",
+  "direccion": "Av. Universidad 457-Loc C, Narvarte Poniente, Benito Juárez, 03020 Ciudad de México, CDMX",
+  "lat": 19.384053299999998,
+  "lon": -99.1563362,
+  "horarios": {
+   "4": [
+    {
+     "desde": 450,
+     "hasta": 1260
+    }
+   ],
+   "5": [
+    {
+     "desde": 450,
+     "hasta": 1260
+    }
+   ],
+   "6": [
+    {
+     "desde": 540,
+     "hasta": 1260
+    }
+   ],
+   "0": [
+    {
+     "desde": 540,
+     "hasta": 1260
+    }
+   ],
+   "1": [
+    {
+     "desde": 450,
+     "hasta": 1260
+    }
+   ],
+   "2": [
+    {
+     "desde": 450,
+     "hasta": 1260
+    }
+   ],
+   "3": [
+    {
+     "desde": 450,
+     "hasta": 1260
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Alquimia Café",
+  "direccion": "Torres Adalid 1515, Narvarte Poniente, Benito Juárez, 03020 Ciudad de México, CDMX",
+  "lat": 19.3889902,
+  "lon": -99.1553108,
+  "horarios": {
+   "4": [
+    {
+     "desde": 540,
+     "hasta": 1320
+    }
+   ],
+   "5": [
+    {
+     "desde": 540,
+     "hasta": 1320
+    }
+   ],
+   "6": [
+    {
+     "desde": 540,
+     "hasta": 1320
+    }
+   ],
+   "0": [
+    {
+     "desde": 540,
+     "hasta": 1320
+    }
+   ],
+   "1": [
+    {
+     "desde": 540,
+     "hasta": 1320
+    }
+   ],
+   "2": [
+    {
+     "desde": 540,
+     "hasta": 1320
+    }
+   ],
+   "3": [
+    {
+     "desde": 540,
+     "hasta": 1320
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Catita Pan y Café",
+  "direccion": "C. Dr. José María Vértiz 997, Narvarte Poniente, Benito Juárez, 03020 Ciudad de México, CDMX",
+  "lat": 19.385231299999997,
+  "lon": -99.1524627,
+  "horarios": {
+   "4": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "5": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "6": [
+    {
+     "desde": 600,
+     "hasta": 1020
+    }
+   ],
+   "0": [
+    {
+     "desde": 600,
+     "hasta": 1020
+    }
+   ],
+   "1": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "2": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "3": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "MiMo Café Bueno Del Valle",
+  "direccion": "Amores 1403-Loc 7, Col del Valle Centro, Benito Juárez, 03104 Ciudad de México, CDMX",
+  "lat": 19.3733546,
+  "lon": -99.1690993,
+  "horarios": {
+   "4": [
+    {
+     "desde": 420,
+     "hasta": 1230
+    }
+   ],
+   "5": [
+    {
+     "desde": 420,
+     "hasta": 1230
+    }
+   ],
+   "6": [
+    {
+     "desde": 540,
+     "hasta": 1200
+    }
+   ],
+   "0": [
+    {
+     "desde": 540,
+     "hasta": 1200
+    }
+   ],
+   "1": [
+    {
+     "desde": 420,
+     "hasta": 1230
+    }
+   ],
+   "2": [
+    {
+     "desde": 420,
+     "hasta": 1230
+    }
+   ],
+   "3": [
+    {
+     "desde": 420,
+     "hasta": 1230
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Fenómeno Café",
+  "direccion": "Edzna 144, Letran Valle, Benito Juárez, 03650 Ciudad de México, CDMX",
+  "lat": 19.3772657,
+  "lon": -99.1491173,
+  "horarios": {
+   "4": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ],
+   "5": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ],
+   "6": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ],
+   "0": [],
+   "1": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ],
+   "2": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ],
+   "3": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Oculto Café",
+  "direccion": "C. Palenque 454, Vértiz Narvarte, Benito Juárez, 03600 Ciudad de México, CDMX",
+  "lat": 19.3818241,
+  "lon": -99.1534484,
+  "horarios": {
+   "4": [
+    {
+     "desde": 630,
+     "hasta": 1260
+    }
+   ],
+   "5": [
+    {
+     "desde": 630,
+     "hasta": 1260
+    }
+   ],
+   "6": [
+    {
+     "desde": 510,
+     "hasta": 1080
+    }
+   ],
+   "0": [
+    {
+     "desde": 600,
+     "hasta": 840
+    }
+   ],
+   "1": [],
+   "2": [
+    {
+     "desde": 630,
+     "hasta": 1260
+    }
+   ],
+   "3": [
+    {
+     "desde": 630,
+     "hasta": 1260
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Kahwen Coffee",
+  "direccion": "Francisco Ortega 17A, Coyoacán, 04000 Ciudad de México, CDMX",
+  "lat": 19.3481614,
+  "lon": -99.1630151,
+  "horarios": {
+   "4": [
+    {
+     "desde": 540,
+     "hasta": 1200
+    }
+   ],
+   "5": [
+    {
+     "desde": 540,
+     "hasta": 1320
+    }
+   ],
+   "6": [
+    {
+     "desde": 660,
+     "hasta": 1200
+    }
+   ],
+   "0": [
+    {
+     "desde": 660,
+     "hasta": 1200
+    }
+   ],
+   "1": [
+    {
+     "desde": 540,
+     "hasta": 1200
+    }
+   ],
+   "2": [
+    {
+     "desde": 540,
+     "hasta": 1200
+    }
+   ],
+   "3": [
+    {
+     "desde": 540,
+     "hasta": 1200
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "El Refin",
+  "direccion": "Cuauhtémoc 184, Del Carmen, Coyoacán, 04100 Ciudad de México, CDMX",
+  "lat": 19.3512612,
+  "lon": -99.1636047,
+  "horarios": {
+   "4": [
+    {
+     "desde": 600,
+     "hasta": 1260
+    }
+   ],
+   "5": [
+    {
+     "desde": 600,
+     "hasta": 1260
+    }
+   ],
+   "6": [
+    {
+     "desde": 600,
+     "hasta": 1260
+    }
+   ],
+   "0": [
+    {
+     "desde": 600,
+     "hasta": 1260
+    }
+   ],
+   "1": [],
+   "2": [
+    {
+     "desde": 600,
+     "hasta": 1260
+    }
+   ],
+   "3": [
+    {
+     "desde": 600,
+     "hasta": 1260
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "El Convite Cafetería y Pastelería Artesanal",
+  "direccion": "Filipinas 832, Portales Sur, Benito Juárez, 03300 Ciudad de México, CDMX",
+  "lat": 19.362627399999997,
+  "lon": -99.1489568,
+  "horarios": {
+   "4": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ],
+   "5": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ],
+   "6": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "0": [
+    {
+     "desde": 600,
+     "hasta": 1080
+    }
+   ],
+   "1": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ],
+   "2": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ],
+   "3": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Café Santa Rita",
+  "direccion": "Guerrero 5, Progreso, Álvaro Obregón, 01080 Ciudad de México, CDMX",
+  "lat": 19.343834599999997,
+  "lon": -99.1993387,
+  "horarios": {
+   "4": [
+    {
+     "desde": 450,
+     "hasta": 1230
+    }
+   ],
+   "5": [
+    {
+     "desde": 450,
+     "hasta": 1230
+    }
+   ],
+   "6": [
+    {
+     "desde": 600,
+     "hasta": 1020
+    }
+   ],
+   "0": [],
+   "1": [
+    {
+     "desde": 450,
+     "hasta": 1230
+    }
+   ],
+   "2": [
+    {
+     "desde": 450,
+     "hasta": 1230
+    }
+   ],
+   "3": [
+    {
+     "desde": 450,
+     "hasta": 1230
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Café Reevolución",
+  "direccion": "Av. Revolución 1905, Tizapán San Ángel, San Ángel, Álvaro Obregón, 01000 Ciudad de México, CDMX",
+  "lat": 19.3394405,
+  "lon": -99.19201869999999,
+  "horarios": {
+   "4": [
+    {
+     "desde": 420,
+     "hasta": 1305
+    }
+   ],
+   "5": [
+    {
+     "desde": 420,
+     "hasta": 1305
+    }
+   ],
+   "6": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ],
+   "0": [
+    {
+     "desde": 540,
+     "hasta": 1140
+    }
+   ],
+   "1": [
+    {
+     "desde": 420,
+     "hasta": 1305
+    }
+   ],
+   "2": [
+    {
+     "desde": 420,
+     "hasta": 1305
+    }
+   ],
+   "3": [
+    {
+     "desde": 420,
+     "hasta": 1305
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Casa Cafeína",
+  "direccion": "Cerro de Las Palomas 3, Copilco Universidad, Coyoacán, 04360 Ciudad de México, CDMX",
+  "lat": 19.3356763,
+  "lon": -99.1767418,
+  "horarios": {
+   "4": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ],
+   "5": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ],
+   "6": [
+    {
+     "desde": 570,
+     "hasta": 1080
+    }
+   ],
+   "0": [],
+   "1": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ],
+   "2": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ],
+   "3": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Cafetal Chilango MAQ",
+  "direccion": "Av. Miguel Ángel de Quevedo 334B, Santa Catarina, Coyoacán, 04010 Ciudad de México, CDMX",
+  "lat": 19.3462489,
+  "lon": -99.1753014,
+  "horarios": {
+   "4": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "5": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "6": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "0": [
+    {
+     "desde": 630,
+     "hasta": 1050
+    }
+   ],
+   "1": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "2": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "3": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Yummy Bear Félix Parra",
+  "direccion": "Félix Parra 78, San José Insurgentes, Benito Juárez, 03900 Ciudad de México, CDMX",
+  "lat": 19.367718399999998,
+  "lon": -99.18496189999999,
+  "horarios": {
+   "4": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ],
+   "5": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ],
+   "6": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ],
+   "0": [
+    {
+     "desde": 480,
+     "hasta": 960
+    }
+   ],
+   "1": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ],
+   "2": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ],
+   "3": [
+    {
+     "desde": 480,
+     "hasta": 1260
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Chez Vous #Timecafé",
+  "direccion": "Av. Insurgentes Centro 1188, Tlacoquemecatl del Valle, Benito Juárez, 03200 Ciudad de México, CDMX",
+  "lat": 19.3776093,
+  "lon": -99.1773845,
+  "horarios": {
+   "4": [
+    {
+     "desde": 450,
+     "hasta": 1290
+    }
+   ],
+   "5": [
+    {
+     "desde": 450,
+     "hasta": 1290
+    }
+   ],
+   "6": [
+    {
+     "desde": 450,
+     "hasta": 1290
+    }
+   ],
+   "0": [
+    {
+     "desde": 450,
+     "hasta": 1290
+    }
+   ],
+   "1": [
+    {
+     "desde": 450,
+     "hasta": 1290
+    }
+   ],
+   "2": [
+    {
+     "desde": 450,
+     "hasta": 1290
+    }
+   ],
+   "3": [
+    {
+     "desde": 450,
+     "hasta": 1290
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Díaz de Café",
+  "direccion": "C. de la Amargura 5-Loc 1, San Ángel, Álvaro Obregón, 01000 Ciudad de México, CDMX",
+  "lat": 19.346168,
+  "lon": -99.19057579999999,
+  "horarios": {
+   "4": [
+    {
+     "desde": 540,
+     "hasta": 1260
+    }
+   ],
+   "5": [
+    {
+     "desde": 540,
+     "hasta": 1260
+    }
+   ],
+   "6": [
+    {
+     "desde": 540,
+     "hasta": 1260
+    }
+   ],
+   "0": [
+    {
+     "desde": 540,
+     "hasta": 1170
+    }
+   ],
+   "1": [
+    {
+     "desde": 540,
+     "hasta": 1260
+    }
+   ],
+   "2": [
+    {
+     "desde": 540,
+     "hasta": 1260
+    }
+   ],
+   "3": [
+    {
+     "desde": 540,
+     "hasta": 1260
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Choppeadito",
+  "direccion": "C. Nueva York 274, Nápoles, Benito Juárez, 03840 Ciudad de México, CDMX",
+  "lat": 19.3880771,
+  "lon": -99.1755645,
+  "horarios": {
+   "4": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "5": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "6": [
+    {
+     "desde": 540,
+     "hasta": 1200
+    }
+   ],
+   "0": [
+    {
+     "desde": 540,
+     "hasta": 840
+    }
+   ],
+   "1": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "2": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ],
+   "3": [
+    {
+     "desde": 480,
+     "hasta": 1200
+    }
+   ]
+  }
+ },
+ {
+  "nombre": "Libre Cafe Holbein",
+  "direccion": "Holbein 55, San Juan, Benito Juárez, 03730 Ciudad de México, CDMX",
+  "lat": 19.380699699999997,
+  "lon": -99.18399989999999,
+  "horarios": {
+   "4": [
+    {
+     "desde": 420,
+     "hasta": 1230
+    }
+   ],
+   "5": [
+    {
+     "desde": 420,
+     "hasta": 1230
+    }
+   ],
+   "6": [
+    {
+     "desde": 540,
+     "hasta": 960
+    }
+   ],
+   "0": [
+    {
+     "desde": 540,
+     "hasta": 960
+    }
+   ],
+   "1": [
+    {
+     "desde": 420,
+     "hasta": 1230
+    }
+   ],
+   "2": [
+    {
+     "desde": 420,
+     "hasta": 1230
+    }
+   ],
+   "3": [
+    {
+     "desde": 420,
+     "hasta": 1230
+    }
+   ]
+  }
+ }
+]

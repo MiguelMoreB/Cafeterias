@@ -655,9 +655,15 @@ async function procesarImportacion(filas) {
     const repetida = yaExiste(lugar);
 
     if (repetida) {
-      // Si ya la tenías SIN horario y ahora sí vino uno, se lo completamos.
-      // (Pasa cuando reimportas porque la vez anterior OSM estaba saturado.)
-      if (!tieneAlgunTurno(repetida.horarios) && tieneAlgunTurno(horarios)) {
+      // ¿Vale la pena tocar una que ya tienes? Solo si el archivo trae MÁS
+      // días que lo guardado. Así se arreglan las que quedaron a medias (por
+      // ejemplo con un solo día) sin pisar lo que capturaste tú completo.
+      const diasNuevos = diasConHorario(horarios);
+      const diasViejos = diasConHorario(repetida.horarios);
+      const completar = diasViejos === 0 ||
+        (actualizarHorariosActivo() && diasNuevos > diasViejos);
+
+      if (completar && diasNuevos > 0) {
         repetida.horarios = horarios;
         repetida.openingHoursOSM = lugar.openingHours;
         completadas++;
@@ -678,7 +684,7 @@ async function procesarImportacion(filas) {
   // --- Reporte honesto de lo que pasó.
   const partes = [`${agregadas} agregadas`];
   if (conHorario) partes.push(`${conHorario} con horario`);
-  if (completadas) partes.push(`${completadas} completadas con su horario`);
+  if (completadas) partes.push(`${completadas} con el horario completado`);
   if (repetidas) partes.push(`${repetidas} ya las tenías`);
   if (noEncontradas.length || cortos.length) partes.push(`${noEncontradas.length + cortos.length} sin ubicar`);
   estadoImport(partes.join(' · ') + avisoHorarios);
@@ -1121,6 +1127,17 @@ function confirmarPunto() {
 function cerrarSelectorMapa() {
   document.getElementById('modalMapa').hidden = true;
   alConfirmarPunto = null;
+}
+
+// Cuántos días de la semana tienen al menos un turno.
+function diasConHorario(horarios) {
+  if (!horarios) return 0;
+  return [0, 1, 2, 3, 4, 5, 6].filter(d => (horarios[d] || []).length > 0).length;
+}
+
+function actualizarHorariosActivo() {
+  const casilla = document.getElementById('actualizarHorarios');
+  return !!(casilla && casilla.checked);
 }
 
 function estadoImport(mensaje) {

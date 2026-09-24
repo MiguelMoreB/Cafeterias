@@ -121,7 +121,24 @@ es privada, Google no entrega nada.
 Si le pones nombre `.kml` en vez de `.json`, escribe un KML: sirve para verlo en otras
 apps de mapas, pero **el KML no puede llevar horarios**.
 
-Dos detalles que costaron sangre:
+En `ejemplos/ruta-del-cafe-cdmx.json` está una lista real ya extraída: **58 cafeterías
+de especialidad de la Ciudad de México con ubicación, dirección y la semana completa
+de horarios**. Sirve para probar la app sin tener que armar una lista desde cero.
+
+### Reimportar sin perder lo que capturaste
+
+Al importar, la casilla **"Completar horarios de las que ya tengo"** decide qué pasa
+con las cafeterías repetidas:
+
+- **Apagada** (por omisión): solo completa las que estén *sin ningún horario*. Nada más
+  se toca.
+- **Encendida**: además corrige las que quedaron **a medias**, pero solo si el archivo
+  trae **más días** que lo guardado. Lo que capturaste completo a mano no se pisa.
+
+Probado con las dos versiones de la misma lista: de 58 cafeterías, corrigió las 27 que
+tenían un solo día, agregó 1 nueva, y dejó intacta la capturada a mano (con sus notas).
+
+Tres detalles que costaron sangre:
 
 - Los identificadores de lugar (`cid`) son enteros de **64 bits con signo**. Para pedir
   la ficha hay que pasarlos a hexadecimal sin signo: a los negativos se les suma 2^64.
@@ -131,6 +148,12 @@ Dos detalles que costaron sangre:
 - La consola de Windows usa cp1252 y truena al imprimir nombres como `LŌU Brew Bar`.
   Por eso los mensajes de pantalla pasan por `seguro()`; el archivo se guarda completo
   en UTF-8.
+- **Google responde de forma inconsistente**: la misma petición, repetida, a veces
+  devuelve los 7 días y a veces solo el de hoy. No es que al lugar le falte el dato.
+  En la primera extracción, **28 de 58 cafeterías quedaron con un solo día** sin que
+  nada lo indicara. Por eso `horario_del_lugar()` reintenta hasta 6 veces, alternando
+  dos variantes de la petición, y va juntando los días que falten en vez de creerle a
+  la primera respuesta. Verificado: tres corridas seguidas devuelven la semana entera.
 
 **Advertencia honesta:** ese endpoint es interno y no está documentado, así que Google
 puede cambiarlo cuando quiera y el script dejaría de servir. La app no depende de él
