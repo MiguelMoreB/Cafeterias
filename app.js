@@ -81,7 +81,11 @@ function conectarEventos() {
   document.getElementById('planDia').addEventListener('change', renderLista);
   document.getElementById('planModo').addEventListener('change', renderLista);
   document.getElementById('planHora').addEventListener('change', renderLista);
-  document.getElementById('btnPaseo').addEventListener('click', alternarModoPaseo);
+  document.getElementById('btnPaseo').addEventListener('click', abrirModalPaseo);
+  document.getElementById('btnEncenderPaseo').addEventListener('click', alternarModoPaseo);
+  ['ajusteRadio', 'ajusteEspera', 'ajusteMargen', 'ajusteNoVisitadas'].forEach(id => {
+    document.getElementById(id).addEventListener('change', guardarAjustesDesdeModal);
+  });
 
   // La barra de avisos abre la pantalla "Cerca de ti" cuando hay algo que ver
   // (es el plan B si las notificaciones del sistema no están disponibles).
@@ -400,14 +404,55 @@ function pintarMarcadores() {
 
 /* ======================= 5b. Modo paseo (avisos) ======================== */
 
+// El botón 🔔 abre la pantalla del modo, donde se configura y se enciende.
+function abrirModalPaseo() {
+  const a = leerAjustes();
+  document.getElementById('ajusteRadio').value = String(a.radioKm);
+  document.getElementById('ajusteEspera').value = String(a.esperaMinutos);
+  document.getElementById('ajusteMargen').value = String(a.margenCierreMin);
+  document.getElementById('ajusteNoVisitadas').checked = a.soloNoVisitadas;
+
+  pintarEstadoModal();
+  abrirModal('modalPaseo');
+}
+
+function pintarEstadoModal() {
+  const encendido = modoPaseoActivo();
+  const boton = document.getElementById('btnEncenderPaseo');
+  boton.textContent = encendido ? 'Apagar' : 'Encender';
+  boton.className = encendido ? 'btn peligro' : 'btn';
+
+  const a = leerAjustes();
+  const sinVisitadas = cafeterias.filter(c => !(a.soloNoVisitadas && c.visitada)).length;
+  document.getElementById('estadoPaseo').textContent = encendido
+    ? `Encendido · vigilando ${sinVisitadas} cafeterías a ${a.radioKm} km`
+    : `Apagado · se vigilarían ${sinVisitadas} de tus ${cafeterias.length} cafeterías`;
+}
+
+// Los ajustes se guardan en cuanto los cambias y aplican de inmediato,
+// incluso con el modo ya encendido.
+function guardarAjustesDesdeModal() {
+  guardarAjustes({
+    radioKm: Number(document.getElementById('ajusteRadio').value),
+    esperaMinutos: Number(document.getElementById('ajusteEspera').value),
+    margenCierreMin: Number(document.getElementById('ajusteMargen').value),
+    soloNoVisitadas: document.getElementById('ajusteNoVisitadas').checked
+  });
+  pintarEstadoModal();
+  if (modoPaseoActivo()) revisarCercanas();
+}
+
 async function alternarModoPaseo() {
-  const boton = document.getElementById('btnPaseo');
+  const icono = document.getElementById('btnPaseo');
+  const boton = document.getElementById('btnEncenderPaseo');
 
   if (modoPaseoActivo()) {
     desactivarModoPaseo();
-    boton.classList.remove('activo');
-    boton.title = 'Modo paseo: avisarme de cafeterías cerca';
+    icono.classList.remove('activo');
+    icono.title = 'Modo paseo: avisarme de cafeterías cerca';
     mostrarEstadoPaseo('Modo paseo apagado.');
+    document.getElementById('avisoUbicacion').classList.remove('aviso-tocable');
+    pintarEstadoModal();
     toast('Modo paseo apagado');
     return;
   }
@@ -422,14 +467,17 @@ async function alternarModoPaseo() {
   boton.disabled = false;
 
   if (!resultado.ok) {
-    mostrarEstadoPaseo(resultado.motivo);
+    document.getElementById('estadoPaseo').textContent = resultado.motivo;
     toast('No se pudo activar');
     return;
   }
 
-  boton.classList.add('activo');
-  boton.title = 'Modo paseo encendido · tócalo para apagarlo';
-  mostrarEstadoPaseo('Modo paseo activo · buscando cafeterías abiertas a 2 km...');
+  icono.classList.add('activo');
+  icono.title = 'Modo paseo encendido · tócalo para ajustarlo o apagarlo';
+  const a = leerAjustes();
+  mostrarEstadoPaseo(`Modo paseo activo · buscando cafeterías abiertas a ${a.radioKm} km...`);
+  pintarEstadoModal();
+  cerrarModales();
   toast('Modo paseo encendido');
 }
 

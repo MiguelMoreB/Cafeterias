@@ -310,11 +310,24 @@ tu ubicación y te avisa cuando hay cafeterías **abiertas a menos de 2 km**. Al
 notificación se abre la pantalla *"Abiertas cerca de ti"* con la lista, su distancia y
 un botón para ir.
 
-**Cada cafetería avisada queda en espera una hora.** Aunque te alejes y vuelvas, no
-repite el aviso hasta que pase ese tiempo; los registros viven en `localStorage` y se
-limpian solos. Probado: primer aviso con 17 cafeterías, cero avisos al seguir dando
-vueltas, un aviso nuevo al llegar a otra zona con otra cafetería, cero al regresar, y
-vuelve a avisar al envejecer los registros 61 minutos.
+**Cada cafetería avisada queda en espera.** Aunque te alejes y vuelvas, no repite el
+aviso hasta que pase ese tiempo; los registros viven en `localStorage` y se limpian
+solos. Probado: primer aviso con 17 cafeterías, cero avisos al seguir dando vueltas, un
+aviso nuevo al llegar a otra zona con otra cafetería, cero al regresar, y vuelve a
+avisar al envejecer los registros más allá de la espera configurada.
+
+### Ajustes (botón 🔔)
+
+| Ajuste | Por omisión | Para qué |
+|---|---|---|
+| **Radio** | 2 km | 500 m a pie, 5 km en coche |
+| **Espera por cafetería** | 1 hora | 30 min, 1 h, 3 h o 12 h sin repetir el aviso |
+| **Margen antes de cerrar** | 15 min | Que no te avise de una que cierra en 5 minutos |
+| **Solo las no visitadas** | sí | Usa la palomita de la lista; las visitadas dejan de avisar |
+
+Se guardan en `localStorage` y aplican al instante, incluso con el modo encendido.
+Medido con la lista de CDMX parado en la Roma Norte: 2 km → 15 cafeterías, 1 km → 1,
+5 km → 39; con margen de 60 min bajan a 13; incluyendo visitadas suben a 17.
 
 ### El límite que hay que conocer antes de usarlo
 

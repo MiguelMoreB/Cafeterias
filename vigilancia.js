@@ -23,11 +23,37 @@
    regreses. Así no te bombardea si das vueltas por la misma cuadra.
    ========================================================================= */
 
-const RADIO_AVISO_KM = 2;                    // qué tan cerca para avisarte
-const ESPERA_ENTRE_AVISOS_MS = 60 * 60 * 1000; // una hora por cafetería
 const MINIMO_ENTRE_REVISIONES_MS = 30 * 1000;  // no revisar más seguido que esto
 const CLAVE_AVISOS = 'avisos_cafeterias_v1';
 const CLAVE_MODO = 'modo_paseo_activo';
+const CLAVE_AJUSTES = 'ajustes_paseo_v1';
+
+/* ------------------------- Ajustes del modo ----------------------------- */
+/* Los valores por omisión son los que tenía el modo antes de poder
+   configurarlo: 2 km, una hora de espera y avisar de todo. */
+
+const AJUSTES_POR_OMISION = {
+  radioKm: 2,            // qué tan cerca para avisarte
+  esperaMinutos: 60,     // cuánto callar sobre una cafetería ya avisada
+  margenCierreMin: 15,   // no avisar de las que cierran antes de esto
+  soloNoVisitadas: true  // las que ya marcaste como visitadas no avisan
+};
+
+function leerAjustes() {
+  try {
+    return Object.assign({}, AJUSTES_POR_OMISION, JSON.parse(localStorage.getItem(CLAVE_AJUSTES)) || {});
+  } catch (e) {
+    return Object.assign({}, AJUSTES_POR_OMISION);
+  }
+}
+
+function guardarAjustes(ajustes) {
+  localStorage.setItem(CLAVE_AJUSTES, JSON.stringify(ajustes));
+}
+
+function esperaEnMilisegundos() {
+  return leerAjustes().esperaMinutos * 60 * 1000;
+}
 
 let idSeguimiento = null;   // el "watch" del GPS
 let bloqueoPantalla = null; // el Wake Lock
@@ -48,17 +74,17 @@ function guardarAvisos(avisos) {
   localStorage.setItem(CLAVE_AVISOS, JSON.stringify(avisos));
 }
 
-// ¿Ya se avisó de esta cafetería hace menos de una hora?
+// ¿Ya se avisó de esta cafetería dentro del tiempo de espera?
 function enEspera(id, avisos, ahora) {
   const cuando = avisos[id];
-  return !!cuando && (ahora - cuando) < ESPERA_ENTRE_AVISOS_MS;
+  return !!cuando && (ahora - cuando) < esperaEnMilisegundos();
 }
 
 // Cuánto falta para que se pueda volver a avisar (en minutos).
 function minutosDeEspera(id) {
   const cuando = leerAvisos()[id];
   if (!cuando) return 0;
-  const faltan = ESPERA_ENTRE_AVISOS_MS - (Date.now() - cuando);
+  const faltan = esperaEnMilisegundos() - (Date.now() - cuando);
   return faltan > 0 ? Math.ceil(faltan / 60000) : 0;
 }
 
@@ -66,9 +92,10 @@ function minutosDeEspera(id) {
 function limpiarAvisosViejos() {
   const avisos = leerAvisos();
   const ahora = Date.now();
+  const espera = esperaEnMilisegundos();
   let cambio = false;
   for (const id of Object.keys(avisos)) {
-    if (ahora - avisos[id] > ESPERA_ENTRE_AVISOS_MS) {
+    if (ahora - avisos[id] > espera) {
       delete avisos[id];
       cambio = true;
     }
@@ -184,18 +211,33 @@ function alMoverse(posicion) {
   revisarCercanas();
 }
 
-// Las que están dentro del radio Y abiertas ahora mismo.
+/* -------------------------------------------------------------------------
+   Las que valen la pena avisarte: dentro del radio, abiertas, con tiempo
+   suficiente antes de cerrar, y (si así lo pediste) sin contar las que ya
+   visitaste.
+
+   Lo del margen de cierre importa más de lo que parece: avisarte de una que
+   cierra en 5 minutos no sirve de nada, solo gasta tu atención.
+   ------------------------------------------------------------------------- */
 function cafeteriasCercaYAbiertas() {
   if (!miUbicacion) return [];
+  const ajustes = leerAjustes();
 
   return cafeterias
+    .filter(cafe => !(ajustes.soloNoVisitadas && cafe.visitada))
     .map(cafe => ({
       cafe,
       km: distanciaKm(miUbicacion.lat, miUbicacion.lon, cafe.lat, cafe.lon),
       estado: estadoAhora(cafe.horarios)
     }))
-    .filter(x => x.km <= RADIO_AVISO_KM &&
-                 (x.estado.estado === 'abierta' || x.estado.estado === 'cierra_pronto'))
+    .filter(x => {
+      if (x.km > ajustes.radioKm) return false;
+      if (x.estado.estado !== 'abierta' && x.estado.estado !== 'cierra_pronto') return false;
+      // 'minutos' es lo que le falta para cerrar; viene de estadoAhora().
+      if (ajustes.margenCierreMin > 0 && x.estado.minutos !== undefined &&
+          x.estado.minutos < ajustes.margenCierreMin) return false;
+      return true;
+    })
     .sort((a, b) => a.km - b.km);
 }
 
@@ -205,7 +247,7 @@ async function revisarCercanas() {
   pintarPanelCerca();
 
   if (cerca.length === 0) {
-    mostrarEstadoPaseo('Modo paseo activo · ninguna abierta a menos de ' + RADIO_AVISO_KM + ' km');
+    mostrarEstadoPaseo(prefijoPaseo() + 'ninguna abierta a menos de ' + leerAjustes().radioKm + ' km');
     return;
   }
 
@@ -214,7 +256,7 @@ async function revisarCercanas() {
   const ahora = Date.now();
   const porAvisar = cerca.filter(x => !enEspera(x.cafe.id, avisos, ahora));
 
-  mostrarEstadoPaseo(`Modo paseo activo · ${cerca.length} abierta(s) cerca`);
+  mostrarEstadoPaseo(`${prefijoPaseo()}${cerca.length} abierta(s) cerca`);
   if (porAvisar.length === 0) return;
 
   // Pase lo que pase con la notificación, hay que apuntar la hora: si no,
@@ -287,6 +329,14 @@ function pintarPanelCerca() {
   if (!ul) return;
   ul.innerHTML = '';
 
+  const ajustes = leerAjustes();
+  const ayuda = document.getElementById('ayudaCerca');
+  if (ayuda) {
+    ayuda.textContent = `A menos de ${ajustes.radioKm} km de donde estás y abiertas ahora` +
+      (ajustes.margenCierreMin > 0 ? `, con al menos ${ajustes.margenCierreMin} min antes de cerrar` : '') +
+      (ajustes.soloNoVisitadas ? ', sin contar las visitadas' : '') + '.';
+  }
+
   // Si el modo no está corriendo, calculamos con la última ubicación conocida.
   const lista = cercanasDetectadas.length ? cercanasDetectadas : cafeteriasCercaYAbiertas();
 
@@ -294,7 +344,7 @@ function pintarPanelCerca() {
     const vacio = document.createElement('li');
     vacio.className = 'nota-pendientes';
     vacio.textContent = miUbicacion
-      ? `Ninguna cafetería abierta a menos de ${RADIO_AVISO_KM} km de ti.`
+      ? `Ninguna cafetería abierta a menos de ${leerAjustes().radioKm} km de ti.`
       : 'Todavía no sé dónde estás. Toca 📍 arriba para darme tu ubicación.';
     ul.appendChild(vacio);
     return;
@@ -348,6 +398,11 @@ function pintarPanelCerca() {
     li.append(cuerpo, ir);
     ul.appendChild(li);
   }
+}
+
+// El mensaje no debe decir "activo" si el modo está apagado.
+function prefijoPaseo() {
+  return modoPaseoActivo() ? 'Modo paseo activo · ' : '';
 }
 
 function mostrarEstadoPaseo(texto) {

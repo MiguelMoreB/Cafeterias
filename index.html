@@ -237,6 +237,65 @@
     </div>
   </div>
 
+  <!-- ============ MODAL: MODO PASEO Y SUS AJUSTES ============ -->
+  <div id="modalPaseo" class="modal" hidden>
+    <div class="modal-caja">
+      <h2>🔔 Modo paseo</h2>
+      <p class="ayuda">
+        Mientras esté encendido y la app abierta, te aviso cuando pases cerca
+        de una cafetería abierta. <strong>Mantiene la pantalla encendida</strong>:
+        si el teléfono se duerme, el navegador deja de leer el GPS.
+      </p>
+
+      <label class="campo">
+        Avisarme de las que estén a menos de
+        <select id="ajusteRadio">
+          <option value="0.5">500 metros (a pie)</option>
+          <option value="0.8">800 metros</option>
+          <option value="1">1 km</option>
+          <option value="2">2 km</option>
+          <option value="5">5 km (en coche)</option>
+        </select>
+      </label>
+
+      <label class="campo">
+        No repetir el aviso de una misma cafetería durante
+        <select id="ajusteEspera">
+          <option value="30">30 minutos</option>
+          <option value="60">1 hora</option>
+          <option value="180">3 horas</option>
+          <option value="720">12 horas</option>
+        </select>
+      </label>
+
+      <label class="campo">
+        No avisarme si le falta menos de
+        <select id="ajusteMargen">
+          <option value="0">sin mínimo</option>
+          <option value="15">15 minutos para cerrar</option>
+          <option value="30">30 minutos para cerrar</option>
+          <option value="60">1 hora para cerrar</option>
+        </select>
+      </label>
+
+      <label class="filtro opcion-import">
+        <input type="checkbox" id="ajusteNoVisitadas">
+        Solo avisarme de las que no he visitado
+        <span class="ayuda">
+          Usa la palomita de la lista: las que ya marcaste dejan de avisar.
+        </span>
+      </label>
+
+      <p id="estadoPaseo" class="ayuda"></p>
+
+      <div class="modal-pie">
+        <button class="btn secundario" data-cerrar>Cerrar</button>
+        <span class="espaciador"></span>
+        <button id="btnEncenderPaseo" class="btn">Encender</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ============ MODAL: CAFETERÍAS CERCA DE TI ============ -->
   <!-- Es lo que se abre al tocar la notificación del modo paseo -->
   <div id="modalCerca" class="modal" hidden>
