@@ -51,6 +51,13 @@ document.addEventListener('DOMContentLoaded', () => {
   renderLista();
   conectarEventos();
   registrarServiceWorker();
+  escucharAlServiceWorker();
+
+  // Si dejaste el modo paseo encendido, avisamos que hay que reactivarlo:
+  // el navegador no deja encender el GPS solo, necesita un toque tuyo.
+  if (modoPaseoQuedoEncendido()) {
+    mostrarEstadoPaseo('El modo paseo se apagó al cerrar la app. Toca 🔔 para encenderlo otra vez.');
+  }
 
   // Cada minuto repintamos: así "cierra en 35 min" se va actualizando solo.
   setInterval(renderLista, 60 * 1000);
@@ -71,6 +78,16 @@ function conectarEventos() {
   // El buscador filtra conforme escribes: es instantáneo porque la lista ya
   // está en el teléfono, no se consulta nada por internet.
   document.getElementById('buscarEnLista').addEventListener('input', renderLista);
+  document.getElementById('planDia').addEventListener('change', renderLista);
+  document.getElementById('planModo').addEventListener('change', renderLista);
+  document.getElementById('planHora').addEventListener('change', renderLista);
+  document.getElementById('btnPaseo').addEventListener('click', alternarModoPaseo);
+
+  // La barra de avisos abre la pantalla "Cerca de ti" cuando hay algo que ver
+  // (es el plan B si las notificaciones del sistema no están disponibles).
+  document.getElementById('avisoUbicacion').addEventListener('click', ev => {
+    if (ev.currentTarget.classList.contains('aviso-tocable')) abrirPanelCerca();
+  });
   document.getElementById('btnLimpiarBusqueda').addEventListener('click', () => {
     document.getElementById('buscarEnLista').value = '';
     renderLista();
@@ -139,12 +156,17 @@ function renderLista() {
   const orden = document.getElementById('ordenar').value;
   const busqueda = sinAcentos(document.getElementById('buscarEnLista').value.trim());
 
-  // A cada cafetería le calculamos AHORA su estado y su distancia.
+  // El filtro de horario cambia la pregunta: en vez de "¿está abierta ahora?"
+  // pasa a ser "¿estaría abierta el sábado a las 8?".
+  const plan = planDeHorario();
+
   let items = cafeterias.map(c => ({
     cafe: c,
-    estado: estadoAhora(c.horarios),
+    estado: plan ? estadoEnPlan(c.horarios, plan) : estadoAhora(c.horarios),
     km: miUbicacion ? distanciaKm(miUbicacion.lat, miUbicacion.lon, c.lat, c.lon) : null
   }));
+
+  if (plan) items = items.filter(i => cumplePlan(i.cafe.horarios, plan));
 
   // El buscador mira nombre, dirección y notas, sin acentos ni mayúsculas:
   // "cafe organico" encuentra "Café Orgánico".
@@ -186,6 +208,62 @@ function renderLista() {
   document.getElementById('btnLimpiarBusqueda').hidden = !busqueda;
   document.getElementById('vacio').hidden = cafeterias.length > 0;
   if (mapa) pintarMarcadores();
+}
+
+/* -------------------------------------------------------------------------
+   Buscar por horario: "¿cuáles abren el sábado a las 8?"
+   Devuelve null si el filtro está apagado.
+   ------------------------------------------------------------------------- */
+function planDeHorario() {
+  const dia = document.getElementById('planDia').value;
+  if (!dia) return null;
+
+  const minutos = aMinutos(document.getElementById('planHora').value);
+  if (minutos === null) return null;
+
+  return {
+    dia: dia === 'hoy' ? new Date().getDay() : Number(dia),
+    minutos,
+    modo: document.getElementById('planModo').value
+  };
+}
+
+function cumplePlan(horarios, plan) {
+  if (plan.modo === 'abre_antes') {
+    const abre = horaApertura(horarios, plan.dia);
+    return abre !== null && abre <= plan.minutos;
+  }
+  if (plan.modo === 'cierra_despues') {
+    const cierra = horaCierre(horarios, plan.dia);
+    return cierra !== null && cierra >= plan.minutos;
+  }
+  return abiertaEn(horarios, plan.dia, plan.minutos);
+}
+
+// Con el filtro puesto, la tarjeta muestra el horario DE ESE DÍA, no el de hoy.
+function estadoEnPlan(horarios, plan) {
+  const abre = horaApertura(horarios, plan.dia);
+  const cierra = horaCierre(horarios, plan.dia);
+  const dia = DIAS[plan.dia].toLowerCase();
+
+  if (abre === null) return { estado: 'cerrada', texto: `Cierra los ${dia}` };
+
+  const horario = `${dia}: ${rangosATexto(horarios[plan.dia])}`;
+
+  // El texto se adapta a lo que preguntaste, si no confunde: con "cierran a
+  // las 22:00 o después", decir "cerrada a las 22:00" parecería un error.
+  if (plan.modo === 'abre_antes') {
+    return { estado: 'abierta', texto: `${horario} · abre ${aTexto(abre)}` };
+  }
+  if (plan.modo === 'cierra_despues') {
+    return { estado: 'abierta', texto: `${horario} · cierra ${aTexto(cierra)}` };
+  }
+
+  const abiertaEsaHora = abiertaEn(horarios, plan.dia, plan.minutos);
+  return {
+    estado: abiertaEsaHora ? 'abierta' : 'cerrada',
+    texto: horario + (abiertaEsaHora ? '' : ` · cerrada a las ${aTexto(plan.minutos)}`)
+  };
 }
 
 // Línea de resumen: cuántas se están viendo y cuántas llevas visitadas.
@@ -318,6 +396,55 @@ function pintarMarcadores() {
   // Ajusta el zoom para que se vea todo lo que hay en el mapa.
   if (puntos.length === 1) mapa.setView(puntos[0], 15);
   else if (puntos.length > 1) mapa.fitBounds(puntos, { padding: [40, 40] });
+}
+
+/* ======================= 5b. Modo paseo (avisos) ======================== */
+
+async function alternarModoPaseo() {
+  const boton = document.getElementById('btnPaseo');
+
+  if (modoPaseoActivo()) {
+    desactivarModoPaseo();
+    boton.classList.remove('activo');
+    boton.title = 'Modo paseo: avisarme de cafeterías cerca';
+    mostrarEstadoPaseo('Modo paseo apagado.');
+    toast('Modo paseo apagado');
+    return;
+  }
+
+  if (cafeterias.length === 0) {
+    toast('Primero agrega cafeterías a tu lista');
+    return;
+  }
+
+  boton.disabled = true;
+  const resultado = await activarModoPaseo();
+  boton.disabled = false;
+
+  if (!resultado.ok) {
+    mostrarEstadoPaseo(resultado.motivo);
+    toast('No se pudo activar');
+    return;
+  }
+
+  boton.classList.add('activo');
+  boton.title = 'Modo paseo encendido · tócalo para apagarlo';
+  mostrarEstadoPaseo('Modo paseo activo · buscando cafeterías abiertas a 2 km...');
+  toast('Modo paseo encendido');
+}
+
+// Al tocar la notificación, el service worker nos avisa y abrimos el panel.
+function escucharAlServiceWorker() {
+  if (!('serviceWorker' in navigator)) return;
+
+  navigator.serviceWorker.addEventListener('message', ev => {
+    if (ev.data && ev.data.tipo === 'abrir-cerca') abrirPanelCerca();
+  });
+
+  // Y si la app se abrió DESDE la notificación, viene con ?cerca=1
+  if (new URLSearchParams(location.search).get('cerca') === '1') {
+    setTimeout(abrirPanelCerca, 400);
+  }
 }
 
 /* =========================== 6. Ubicación =============================== */

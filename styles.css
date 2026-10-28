@@ -60,6 +60,10 @@ body {
   background: #f3ece4;
 }
 .aviso:empty { display: none; }
+.aviso-tocable {
+  background: #fff3d6; color: #8a6100; font-weight: 600;
+  cursor: pointer; border-bottom: 1px solid #f0dcb8;
+}
 
 /* ---------- Pestañas ---------- */
 .tabs { display: flex; border-bottom: 1px solid var(--borde); background: var(--tarjeta); }
@@ -92,6 +96,23 @@ body {
   font-size: 13px; color: var(--suave);
 }
 .contador:empty { display: none; }
+
+/* ---------- Buscar por horario ---------- */
+.planear { margin: 0 16px 8px; }
+.planear summary {
+  cursor: pointer; font-size: 14px; color: var(--cafe);
+  font-weight: 600; padding: 6px 0;
+}
+.planear-campos {
+  display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0;
+}
+.planear-campos select, .planear-campos input { flex: 1 1 140px; font-size: 14px; }
+.planear .ayuda { margin: 4px 0 0; }
+
+/* Lista de la pantalla "Cerca de ti" */
+.lista-cerca { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.lista-cerca .tarjeta { cursor: default; align-items: center; }
+.lista-cerca .tarjeta-cuerpo { cursor: pointer; }
 
 /* ---------- Filtros ---------- */
 .filtros {

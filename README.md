@@ -19,6 +19,7 @@ styles.css      Colores y diseño. Los colores están arriba, en :root.
 horarios.js     El cerebro: entiende horarios y decide abierto/cerrado. Sin pantalla.
 osm.js          La conexión a internet: buscar lugares y traer sus horarios.
 importar.js     Leer links de Google Maps y el CSV de Google Takeout.
+vigilancia.js   Modo paseo: avisos por cercanía, con espera de una hora.
 app.js          Une todo: guarda datos, pinta la lista, el mapa y los modales.
 sw.js           Service worker: permite instalarla y abrirla sin internet.
 manifest.webmanifest / icono.svg   Para que se instale como app en el celular.
@@ -301,6 +302,52 @@ y entra a `http://ESA-IP:8777`. Ojo: en esa dirección el navegador **no** dará
 ubicación (no es `https` ni `localhost`); para eso hay que publicarla.
 
 ---
+
+## Modo paseo: avisos al pasar cerca (`vigilancia.js`)
+
+El botón 🔔 de la barra enciende un modo que, **mientras la app esté abierta**, vigila
+tu ubicación y te avisa cuando hay cafeterías **abiertas a menos de 2 km**. Al tocar la
+notificación se abre la pantalla *"Abiertas cerca de ti"* con la lista, su distancia y
+un botón para ir.
+
+**Cada cafetería avisada queda en espera una hora.** Aunque te alejes y vuelvas, no
+repite el aviso hasta que pase ese tiempo; los registros viven en `localStorage` y se
+limpian solos. Probado: primer aviso con 17 cafeterías, cero avisos al seguir dando
+vueltas, un aviso nuevo al llegar a otra zona con otra cafetería, cero al regresar, y
+vuelve a avisar al envejecer los registros 61 minutos.
+
+### El límite que hay que conocer antes de usarlo
+
+**Una app web NO puede seguir tu ubicación en segundo plano.** No existe permiso de
+"ubicación en segundo plano" para páginas web: eso solo lo tienen las apps nativas de
+la tienda. Si bloqueas el teléfono o te cambias de app, el navegador deja de leer el
+GPS y el modo deja de avisar. No es algo que falte programar.
+
+Por eso está planteado como un **modo que enciendes al salir**, no como algo
+permanente, y mientras está activo pide mantener la pantalla encendida
+(`navigator.wakeLock`): sin eso el teléfono se duerme a los segundos y el modo se
+vuelve inútil. Gasta batería, y por eso se apaga a mano.
+
+Si las notificaciones del sistema no están disponibles (permiso denegado, navegador sin
+soporte), el modo **no se queda mudo**: el aviso sale como una barra tocable dentro de
+la app. Y pase lo que pase con el aviso, la hora se registra igual, para que un fallo
+no derive en avisos repetidos.
+
+**Requiere `https://`** (o `localhost`): sin eso el navegador no da ni ubicación, ni
+notificaciones, ni service worker. En el celular, hay que publicar la app primero.
+
+## Buscar por horario (para otro día)
+
+El desplegable *"🗓️ Buscar por horario"* cambia la pregunta de "¿está abierta ahora?" a
+"¿estaría abierta el sábado a las 8?". Tres modos:
+
+- **que estén abiertas a las** — las que a esa hora de ese día están abiertas
+- **que abran a esa hora o antes** — para madrugar
+- **que cierren a esa hora o después** — para quedarse tarde
+
+Con el filtro puesto, cada tarjeta muestra el horario **de ese día**, no el de hoy.
+Medido con la lista de CDMX: 15 abiertas el domingo a las 8:00, 44 a las 10:00, y 5 que
+el viernes cierran a las 22:00 o después.
 
 ## Buscador y cafeterías visitadas
 

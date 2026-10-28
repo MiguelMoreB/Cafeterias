@@ -8,7 +8,7 @@
    Si cambias los archivos y no ves los cambios, sube el número de VERSION.
    ========================================================================= */
 
-const VERSION = 'cafeterias-v10';
+const VERSION = 'cafeterias-v11';
 
 const ARCHIVOS = [
   './',
@@ -17,6 +17,7 @@ const ARCHIVOS = [
   './horarios.js',
   './osm.js',
   './importar.js',
+  './vigilancia.js',
   './app.js',
   './manifest.webmanifest',
   './icono.svg'
@@ -35,6 +36,31 @@ self.addEventListener('activate', ev => {
     )
   );
   self.clients.claim();
+});
+
+/* -------------------------------------------------------------------------
+   Al tocar la notificación del modo paseo.
+
+   Si la app ya está abierta en alguna pestaña, la traemos al frente y le
+   mandamos un recado para que abra la pantalla "Cerca de ti". Si no hay
+   ninguna abierta, la abrimos con ?cerca=1 para que lo haga al cargar.
+   ------------------------------------------------------------------------- */
+self.addEventListener('notificationclick', ev => {
+  ev.notification.close();
+
+  ev.waitUntil((async () => {
+    const abiertas = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+
+    for (const ventana of abiertas) {
+      if ('focus' in ventana) {
+        ventana.postMessage({ tipo: 'abrir-cerca' });
+        return ventana.focus();
+      }
+    }
+    if (self.clients.openWindow) {
+      return self.clients.openWindow('./index.html?cerca=1');
+    }
+  })());
 });
 
 self.addEventListener('fetch', ev => {

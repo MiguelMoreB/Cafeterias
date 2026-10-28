@@ -361,6 +361,40 @@ function proximaApertura(horarios, hoy, minutosAhora) {
   return null;
 }
 
+/* -------------------------------------------------------------------------
+   Funciones para PLANEAR: en vez de "¿está abierta ahora?", responden
+   "¿estaría abierta el martes a las 9?". Las usa el buscador por horario.
+   ------------------------------------------------------------------------- */
+
+// ¿Está abierta ese día a esa hora? (dia: 0=domingo, minutos desde medianoche)
+function abiertaEn(horarios, dia, minutos) {
+  if (!horarios) return false;
+
+  for (const turno of horarios[dia] || []) {
+    if (minutos >= turno.desde && minutos < turno.hasta) return true;
+  }
+  // Y los turnos del día anterior que cruzan la medianoche (18:00-02:00).
+  const ayer = (dia + 6) % 7;
+  for (const turno of horarios[ayer] || []) {
+    if (minutos + 1440 >= turno.desde && minutos + 1440 < turno.hasta) return true;
+  }
+  return false;
+}
+
+// A qué hora abre ese día (el turno más temprano), o null si cierra.
+function horaApertura(horarios, dia) {
+  const turnos = (horarios && horarios[dia]) || [];
+  if (turnos.length === 0) return null;
+  return Math.min(...turnos.map(t => t.desde));
+}
+
+// A qué hora cierra ese día (el turno más tardío), o null si cierra.
+function horaCierre(horarios, dia) {
+  const turnos = (horarios && horarios[dia]) || [];
+  if (turnos.length === 0) return null;
+  return Math.max(...turnos.map(t => t.hasta));
+}
+
 function tieneAlgunTurno(horarios) {
   return [0, 1, 2, 3, 4, 5, 6].some(d => (horarios[d] || []).length > 0);
 }

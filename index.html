@@ -21,6 +21,7 @@
   <header class="barra">
     <h1>☕ Cafeterías</h1>
     <div class="acciones">
+      <button id="btnPaseo" class="btn-icono" title="Modo paseo: avisarme de cafeterías cerca">🔔</button>
       <button id="btnUbicacion" class="btn-icono" title="Usar mi ubicación">📍</button>
       <button id="btnAgregar" class="btn-icono" title="Agregar cafetería">＋</button>
     </div>
@@ -56,6 +57,36 @@
           <option value="estado">Ordenar: abiertas primero</option>
         </select>
       </div>
+
+      <!-- Buscar por horario, para planear otro día -->
+      <details class="planear">
+        <summary>🗓️ Buscar por horario (para otro día)</summary>
+        <div class="planear-campos">
+          <select id="planDia">
+            <option value="">— sin filtro de horario —</option>
+            <option value="hoy">Hoy</option>
+            <option value="1">Lunes</option>
+            <option value="2">Martes</option>
+            <option value="3">Miércoles</option>
+            <option value="4">Jueves</option>
+            <option value="5">Viernes</option>
+            <option value="6">Sábado</option>
+            <option value="0">Domingo</option>
+          </select>
+
+          <select id="planModo">
+            <option value="abierta">que estén abiertas a las</option>
+            <option value="abre_antes">que abran a esa hora o antes</option>
+            <option value="cierra_despues">que cierren a esa hora o después</option>
+          </select>
+
+          <input type="time" id="planHora" value="09:00">
+        </div>
+        <p class="ayuda">
+          Ejemplo: <em>Sábado · que abran a esa hora o antes · 08:00</em> te deja las
+          que ya están abiertas a esa hora el sábado.
+        </p>
+      </details>
 
       <p id="contador" class="contador"></p>
 
@@ -206,6 +237,21 @@
     </div>
   </div>
 
+  <!-- ============ MODAL: CAFETERÍAS CERCA DE TI ============ -->
+  <!-- Es lo que se abre al tocar la notificación del modo paseo -->
+  <div id="modalCerca" class="modal" hidden>
+    <div class="modal-caja">
+      <h2>☕ Abiertas cerca de ti</h2>
+      <p class="ayuda" id="ayudaCerca">
+        A menos de 2 km de donde estás, y abiertas en este momento.
+      </p>
+      <ul id="listaCerca" class="lista-cerca"></ul>
+      <div class="modal-pie">
+        <button class="btn secundario" data-cerrar>Cerrar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ============ MODAL: CAPTURA GUIADA, UNA POR UNA ============ -->
   <div id="modalCaptura" class="modal" hidden>
     <div class="modal-caja">
@@ -265,6 +311,7 @@
   <script src="horarios.js"></script>
   <script src="osm.js"></script>
   <script src="importar.js"></script>
+  <script src="vigilancia.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
