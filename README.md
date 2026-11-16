@@ -20,6 +20,7 @@ horarios.js     El cerebro: entiende horarios y decide abierto/cerrado. Sin pant
 osm.js          La conexión a internet: buscar lugares y traer sus horarios.
 importar.js     Leer links de Google Maps y el CSV de Google Takeout.
 vigilancia.js   Modo paseo: avisos por cercanía, con espera de una hora.
+categorias.js   Agrupar los lugares por tipo (cafeterías, bares, etc.).
 app.js          Une todo: guarda datos, pinta la lista, el mapa y los modales.
 sw.js           Service worker: permite instalarla y abrirla sin internet.
 manifest.webmanifest / icono.svg   Para que se instale como app en el celular.
@@ -361,6 +362,42 @@ El desplegable *"🗓️ Buscar por horario"* cambia la pregunta de "¿está abi
 Con el filtro puesto, cada tarjeta muestra el horario **de ese día**, no el de hoy.
 Medido con la lista de CDMX: 15 abiertas el domingo a las 8:00, 44 a las 10:00, y 5 que
 el viernes cierran a las 22:00 o después.
+
+## Categorías (`categorias.js`)
+
+La app nació solo para cafeterías. Con categorías sirve para bares, comida japonesa o
+lo que sea, **sin que se mezclen**. El selector de arriba manda sobre todo:
+
+- La **lista** y el **mapa** muestran solo la categoría activa.
+- Lo que **agregues o importes** cae en esa categoría.
+- El **modo paseo** solo avisa de esa categoría: si andas buscando bares, no te
+  interrumpe con cafeterías.
+- Con **"Todas"** ves todo junto, y cada marcador del mapa lleva el emoji de su
+  categoría para distinguirlos.
+
+Cada lugar puede cambiarse de categoría desde su detalle. Si al moverlo sale de la
+categoría que estás viendo, la app lo dice (*"Movido a 🍻 Bares"*) en vez de dejar que
+parezca que se borró.
+
+**Al borrar una categoría, sus lugares nunca se borran**: hay que moverlos, y si tienes
+varias categorías **tú eliges a cuál**. Mandarlos a la primera por omisión sería volver
+a mezclar justo lo que las categorías evitan.
+
+Los lugares guardados antes de que esto existiera se migran solos a la categoría
+inicial (`migrarLugaresSinCategoria`), sin perder nada. Probado con las 58 de CDMX.
+
+> Nota de código: el arreglo de lugares se sigue llamando `cafeterias`. Renombrarlo
+> tocaría cinco archivos sin aportar nada funcional; se dejó así a propósito.
+
+## Agregar un lugar a mano
+
+En **＋ → ✍️ Escribir los datos a mano**: nombre, categoría, dirección, ubicación y
+horario. Para lugares que no están en ningún buscador o cuando quieres tus propios datos.
+
+La ubicación se pone de dos formas: **tocando el punto en el mapa** o **pegando un link
+de Google Maps**. El horario acepta el mismo formato que el resto de la app (pegado de
+Google Maps o escrito), y si lo dejas vacío se abre el detalle para capturarlo día por
+día. Probado con un bar nocturno: `18:00–02:00` se guarda cruzando la medianoche.
 
 ## Buscador y cafeterías visitadas
 

@@ -48,6 +48,8 @@ let candidatoTemporal = null;
 
 document.addEventListener('DOMContentLoaded', () => {
   cafeterias = DB.leer();
+  migrarLugaresSinCategoria(); // los guardados antes de que hubiera categorías
+  pintarSelectoresDeCategoria();
   renderLista();
   conectarEventos();
   registrarServiceWorker();
@@ -81,6 +83,13 @@ function conectarEventos() {
   document.getElementById('planDia').addEventListener('change', renderLista);
   document.getElementById('planModo').addEventListener('change', renderLista);
   document.getElementById('planHora').addEventListener('change', renderLista);
+  document.getElementById('categoriaActiva').addEventListener('change', cambiarCategoriaActiva);
+  document.getElementById('btnCategorias').addEventListener('click', abrirModalCategorias);
+  document.getElementById('btnCrearCategoria').addEventListener('click', crearDesdeModal);
+  document.getElementById('btnAbrirManual').addEventListener('click', abrirModalManual);
+  document.getElementById('manualEnMapa').addEventListener('click', ubicarManualEnMapa);
+  document.getElementById('manualGuardar').addEventListener('click', guardarManual);
+
   document.getElementById('btnPaseo').addEventListener('click', abrirModalPaseo);
   document.getElementById('btnEncenderPaseo').addEventListener('click', alternarModoPaseo);
   ['ajusteRadio', 'ajusteEspera', 'ajusteMargen', 'ajusteNoVisitadas'].forEach(id => {
@@ -164,7 +173,9 @@ function renderLista() {
   // pasa a ser "¿estaría abierta el sábado a las 8?".
   const plan = planDeHorario();
 
-  let items = cafeterias.map(c => ({
+  // Primero la categoría: con "Bares" seleccionado, las cafeterías ni
+  // aparecen (ni en la lista ni, más abajo, en el mapa).
+  let items = cafeterias.filter(perteneceAVista).map(c => ({
     cafe: c,
     estado: plan ? estadoEnPlan(c.horarios, plan) : estadoAhora(c.horarios),
     km: miUbicacion ? distanciaKm(miUbicacion.lat, miUbicacion.lon, c.lat, c.lon) : null
@@ -275,16 +286,18 @@ function actualizarContador(mostradas, busqueda) {
   const contador = document.getElementById('contador');
   if (cafeterias.length === 0) { contador.textContent = ''; return; }
 
-  const visitadas = cafeterias.filter(c => c.visitada).length;
+  // El total es el de la categoría que estás viendo, no el de toda la app.
+  const enVista = cafeterias.filter(perteneceAVista);
+  const visitadas = enVista.filter(c => c.visitada).length;
   const partes = [];
 
   if (mostradas === 0) {
-    partes.push(busqueda ? `Ninguna coincide con "${document.getElementById('buscarEnLista').value.trim()}"`
-                         : 'Ninguna cumple los filtros');
-  } else if (mostradas < cafeterias.length) {
-    partes.push(`${mostradas} de ${cafeterias.length}`);
+    partes.push(busqueda ? `Ninguno coincide con "${document.getElementById('buscarEnLista').value.trim()}"`
+                         : 'Ninguno cumple los filtros');
+  } else if (mostradas < enVista.length) {
+    partes.push(`${mostradas} de ${enVista.length}`);
   } else {
-    partes.push(cafeterias.length === 1 ? '1 cafetería' : `${cafeterias.length} cafeterías`);
+    partes.push(enVista.length === 1 ? '1 lugar' : `${enVista.length} lugares`);
   }
 
   if (visitadas > 0) partes.push(visitadas === 1 ? '1 visitada' : `${visitadas} visitadas`);
@@ -367,13 +380,19 @@ function pintarMarcadores() {
 
   const puntos = [];
 
-  for (const cafe of cafeterias) {
+  // El mapa muestra solo la categoría seleccionada. Cuando ves "Todas",
+  // cada marcador lleva el emoji de la suya para no confundirlos.
+  const verTodas = categoriaActiva() === TODAS;
+
+  for (const cafe of cafeterias.filter(perteneceAVista)) {
     const estado = estadoAhora(cafe.horarios);
     const icono = L.divIcon({
       className: '',
-      html: `<div class="marcador ${estado.estado}"></div>`,
-      iconSize: [18, 18],
-      iconAnchor: [9, 9]
+      html: verTodas
+        ? `<div class="marcador ${estado.estado} con-emoji">${escapar(emojiDeLugar(cafe))}</div>`
+        : `<div class="marcador ${estado.estado}"></div>`,
+      iconSize: verTodas ? [26, 26] : [18, 18],
+      iconAnchor: verTodas ? [13, 13] : [9, 9]
     });
 
     const km = miUbicacion ? distanciaKm(miUbicacion.lat, miUbicacion.lon, cafe.lat, cafe.lon) : null;
@@ -400,6 +419,244 @@ function pintarMarcadores() {
   // Ajusta el zoom para que se vea todo lo que hay en el mapa.
   if (puntos.length === 1) mapa.setView(puntos[0], 15);
   else if (puntos.length > 1) mapa.fitBounds(puntos, { padding: [40, 40] });
+}
+
+/* ========================= 5c. Categorías =============================== */
+
+// Llena el selector de arriba y el del formulario manual.
+function pintarSelectoresDeCategoria() {
+  const lista = leerCategorias();
+  const selector = document.getElementById('categoriaActiva');
+  const activa = categoriaActiva();
+
+  selector.innerHTML = '';
+  for (const cat of lista) {
+    const op = document.createElement('option');
+    op.value = cat.id;
+    op.textContent = `${cat.emoji} ${cat.nombre} (${cuantosEnCategoria(cat.id)})`;
+    selector.appendChild(op);
+  }
+  if (lista.length > 1) {
+    const todas = document.createElement('option');
+    todas.value = TODAS;
+    todas.textContent = `🗂️ Todas (${cafeterias.length})`;
+    selector.appendChild(todas);
+  }
+  selector.value = activa;
+
+  const manual = document.getElementById('manualCategoria');
+  manual.innerHTML = '';
+  for (const cat of lista) {
+    const op = document.createElement('option');
+    op.value = cat.id;
+    op.textContent = `${cat.emoji} ${cat.nombre}`;
+    manual.appendChild(op);
+  }
+  manual.value = categoriaParaGuardar();
+}
+
+function cambiarCategoriaActiva() {
+  fijarCategoriaActiva(document.getElementById('categoriaActiva').value);
+  renderLista();
+  if (mapa) ajustarVistaDelMapa();
+}
+
+// Al cambiar de categoría el mapa debe reencuadrar: si no, te quedas
+// viendo la zona de la categoría anterior, a veces sin un solo marcador.
+function ajustarVistaDelMapa() {
+  pintarMarcadores();
+}
+
+/* --------------------- Administrar categorías --------------------------- */
+
+function abrirModalCategorias() {
+  pintarListaCategorias();
+  document.getElementById('avisoCategorias').textContent = '';
+  abrirModal('modalCategorias');
+}
+
+function pintarListaCategorias() {
+  const ul = document.getElementById('listaCategorias');
+  const lista = leerCategorias();
+  ul.innerHTML = '';
+
+  for (const cat of lista) {
+    const li = document.createElement('li');
+
+    const titulo = document.createElement('strong');
+    titulo.textContent = `${cat.emoji} ${cat.nombre}`;
+
+    const cuantos = document.createElement('span');
+    cuantos.className = 'ayuda';
+    const n = cuantosEnCategoria(cat.id);
+    cuantos.textContent = n === 1 ? '1 lugar' : `${n} lugares`;
+
+    const acciones = document.createElement('div');
+    acciones.className = 'acciones-pendiente';
+
+    const renombrar = document.createElement('button');
+    renombrar.className = 'btn secundario chico';
+    renombrar.textContent = 'Renombrar';
+    renombrar.addEventListener('click', () => renombrarDesdeModal(cat));
+
+    const borrar = document.createElement('button');
+    borrar.className = 'btn secundario chico';
+    borrar.textContent = 'Eliminar';
+    borrar.disabled = lista.length <= 1;
+    borrar.addEventListener('click', () => borrarDesdeModal(cat, lista));
+
+    acciones.append(renombrar, borrar);
+    li.append(titulo, cuantos, acciones);
+    ul.appendChild(li);
+  }
+}
+
+function renombrarDesdeModal(cat) {
+  const nombre = prompt('Nuevo nombre para la categoría:', cat.nombre);
+  if (nombre === null) return;
+  const emoji = prompt('Emoji (se ve en el mapa):', cat.emoji);
+
+  const r = renombrarCategoria(cat.id, nombre, emoji === null ? cat.emoji : emoji);
+  document.getElementById('avisoCategorias').textContent = r.ok ? '' : r.motivo;
+  if (r.ok) refrescarTodo();
+}
+
+function borrarDesdeModal(cat, lista) {
+  const cuantos = cuantosEnCategoria(cat.id);
+  const otras = lista.filter(c => c.id !== cat.id);
+  let destino = otras[0];
+
+  if (cuantos === 0) {
+    if (!confirm(`¿Eliminar la categoría "${cat.nombre}"?`)) return;
+  } else {
+    // Nunca se borran lugares en silencio, y si hay varias categorías TÚ
+    // eliges a dónde van: mandarlos a la primera sería volver a mezclarlos,
+    // que es justo lo que las categorías evitan.
+    if (otras.length > 1) {
+      const opciones = otras.map((c, i) => `${i + 1}. ${c.emoji} ${c.nombre}`).join('\n');
+      const elegido = prompt(
+        `"${cat.nombre}" tiene ${cuantos} lugar(es). No se borran: hay que moverlos.\n\n` +
+        `¿A qué categoría?\n${opciones}\n\nEscribe el número:`, '1');
+      if (elegido === null) return;
+
+      const indice = Number(elegido) - 1;
+      if (!(indice >= 0 && indice < otras.length)) {
+        document.getElementById('avisoCategorias').textContent = 'Ese número no está en la lista; no se borró nada.';
+        return;
+      }
+      destino = otras[indice];
+    } else if (!confirm(
+      `"${cat.nombre}" tiene ${cuantos} lugar(es).\n\nSe moverán a "${destino.nombre}" y la categoría se eliminará.\n\n¿Continuar?`)) {
+      return;
+    }
+  }
+
+  const r = borrarCategoria(cat.id, destino.id);
+  if (!r.ok) {
+    document.getElementById('avisoCategorias').textContent = r.motivo;
+    return;
+  }
+  refrescarTodo();
+  toast(r.movidos > 0 ? `Eliminada · ${r.movidos} movidos a ${destino.nombre}` : 'Categoría eliminada');
+}
+
+function crearDesdeModal() {
+  const nombre = document.getElementById('nuevaCategoriaNombre');
+  const emoji = document.getElementById('nuevaCategoriaEmoji');
+
+  const r = crearCategoria(nombre.value, emoji.value);
+  if (!r.ok) {
+    document.getElementById('avisoCategorias').textContent = r.motivo;
+    return;
+  }
+  nombre.value = '';
+  emoji.value = '';
+  document.getElementById('avisoCategorias').textContent = '';
+  refrescarTodo();
+  toast(`Categoría "${r.categoria.nombre}" creada`);
+}
+
+// Después de tocar categorías hay que repintar selectores, lista y mapa.
+function refrescarTodo() {
+  pintarSelectoresDeCategoria();
+  pintarListaCategorias();
+  renderLista();
+  if (mapa) pintarMarcadores();
+}
+
+/* ====================== 5d. Agregar a mano ============================== */
+
+let ubicacionManual = null; // la que eliges en el mapa dentro del formulario
+
+function abrirModalManual() {
+  ubicacionManual = null;
+  document.getElementById('manualNombre').value = '';
+  document.getElementById('manualDireccion').value = '';
+  document.getElementById('manualLink').value = '';
+  document.getElementById('manualHorario').value = '';
+  document.getElementById('manualAviso').textContent = '';
+  document.getElementById('manualUbicacion').textContent = 'Sin ubicación todavía';
+  pintarSelectoresDeCategoria();
+  abrirModal('modalManual');
+  document.getElementById('manualNombre').focus();
+}
+
+function ubicarManualEnMapa() {
+  const nombre = document.getElementById('manualNombre').value.trim() || 'Nuevo lugar';
+  abrirSelectorMapa(nombre, ubicacionManual, punto => {
+    ubicacionManual = punto;
+    document.getElementById('manualUbicacion').textContent =
+      `Ubicación puesta (${punto.lat.toFixed(5)}, ${punto.lon.toFixed(5)})`;
+    document.getElementById('manualAviso').textContent = '';
+  });
+}
+
+function guardarManual() {
+  const aviso = document.getElementById('manualAviso');
+  const nombre = document.getElementById('manualNombre').value.trim();
+
+  if (!nombre) {
+    aviso.textContent = 'Ponle un nombre al lugar.';
+    return;
+  }
+
+  // La ubicación puede venir del mapa o de un link de Google Maps pegado.
+  const punto = ubicacionManual || coordsDesdeTexto(document.getElementById('manualLink').value);
+  if (!punto) {
+    aviso.textContent = 'Falta la ubicación: ponla en el mapa o pega su link de Google Maps.';
+    return;
+  }
+
+  const lugar = {
+    nombre,
+    direccion: document.getElementById('manualDireccion').value.trim(),
+    lat: punto.lat,
+    lon: punto.lon,
+    categoria: document.getElementById('manualCategoria').value
+  };
+
+  if (yaExiste(lugar)) {
+    aviso.textContent = 'Ya tienes un lugar con ese nombre en ese punto.';
+    return;
+  }
+
+  const horarios = parsearHorarioPegado(document.getElementById('manualHorario').value) || horariosVacios();
+  const nuevo = construirCafe(lugar, horarios);
+  nuevo.categoria = lugar.categoria;
+
+  cafeterias.push(nuevo);
+  DB.guardar(cafeterias);
+
+  // Si lo guardaste en una categoría que no estás viendo, cambiamos a ella:
+  // si no, parecería que no se guardó.
+  if (!perteneceAVista(nuevo)) fijarCategoriaActiva(nuevo.categoria);
+
+  refrescarTodo();
+  cerrarModales();
+  toast('Agregado: ' + nombre);
+
+  // Abrimos el detalle para que puedas afinar el horario día por día.
+  if (!tieneAlgunTurno(horarios)) abrirDetalle(nuevo.id);
 }
 
 /* ======================= 5b. Modo paseo (avisos) ======================== */
@@ -678,6 +935,7 @@ async function agregarCafeteria(lugar) {
 
   cafeterias.push(cafe);
   DB.guardar(cafeterias);
+  pintarSelectoresDeCategoria();
   renderLista();
   cerrarModales();
 
@@ -706,6 +964,8 @@ function construirCafe(datos, horarios) {
     web: datos.web || null,
     notas: datos.notas || '',
     visitada: !!datos.visitada,
+    // Lo que agregas o importas cae en la categoría que estás viendo.
+    categoria: datos.categoria || categoriaParaGuardar(),
     // true = la ubicación la adivinó un buscador, no vino de un link exacto.
     // Se muestra un aviso hasta que la confirmes en el mapa.
     aproximada: !!datos.aproximada
@@ -933,6 +1193,7 @@ async function procesarImportacion(filas) {
   }
 
   DB.guardar(cafeterias);
+  pintarSelectoresDeCategoria();
   renderLista();
 
   // --- Reporte honesto de lo que pasó.
@@ -1437,6 +1698,17 @@ function abrirDetalle(id) {
     editor.appendChild(fila);
   }
 
+  // Selector de categoría del lugar
+  const selCat = document.getElementById('detalleCategoria');
+  selCat.innerHTML = '';
+  for (const cat of leerCategorias()) {
+    const op = document.createElement('option');
+    op.value = cat.id;
+    op.textContent = `${cat.emoji} ${cat.nombre}`;
+    selCat.appendChild(op);
+  }
+  selCat.value = categoriaDeLugar(cafe);
+
   document.getElementById('horarioPegado').value = '';
   document.getElementById('estadoHorarioPegado').textContent = '';
 
@@ -1494,10 +1766,23 @@ function guardarDetalle() {
   cafe.horarios = horarios;
   cafe.notas = document.getElementById('detalleNotas').value.trim();
 
+  // Cambiar de categoría puede sacarlo de la vista actual; se avisa para
+  // que no parezca que se borró.
+  const categoriaAntes = categoriaDeLugar(cafe);
+  cafe.categoria = document.getElementById('detalleCategoria').value;
+  const cambioDeCategoria = cafe.categoria !== categoriaAntes;
+
   DB.guardar(cafeterias);
+  pintarSelectoresDeCategoria();
   renderLista();
   cerrarModales();
-  toast('Guardado');
+
+  if (cambioDeCategoria && !perteneceAVista(cafe)) {
+    const destino = categoriaPorId(cafe.categoria);
+    toast(`Movido a ${destino.emoji} ${destino.nombre}`);
+  } else {
+    toast('Guardado');
+  }
 }
 
 function eliminarDetalle() {
@@ -1507,6 +1792,7 @@ function eliminarDetalle() {
 
   cafeterias = cafeterias.filter(c => c.id !== idEnDetalle);
   DB.guardar(cafeterias);
+  pintarSelectoresDeCategoria();
   renderLista();
   cerrarModales();
   toast('Eliminada');

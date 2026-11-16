@@ -65,6 +65,31 @@ body {
   cursor: pointer; border-bottom: 1px solid #f0dcb8;
 }
 
+/* ---------- Barra de categorías ---------- */
+.barra-categorias {
+  display: flex; gap: 8px; align-items: center;
+  padding: 10px 16px; background: var(--tarjeta);
+  border-bottom: 1px solid var(--borde);
+}
+.barra-categorias select {
+  flex: 1; font-size: 15px; font-weight: 600; color: var(--cafe);
+}
+
+.lista-categorias { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 8px; }
+.lista-categorias li {
+  background: var(--tarjeta); border: 1px solid var(--borde);
+  border-radius: 10px; padding: 10px 12px;
+}
+.lista-categorias strong { display: block; font-size: 15px; }
+.lista-categorias .ayuda { margin: 2px 0 0; }
+.campo-emoji { width: 64px; text-align: center; font-size: 18px; flex: 0 0 auto; }
+
+/* Marcador con emoji, para cuando ves todas las categorías juntas */
+.marcador.con-emoji {
+  width: 26px; height: 26px; font-size: 14px;
+  display: grid; place-items: center; line-height: 1;
+}
+
 /* ---------- Pestañas ---------- */
 .tabs { display: flex; border-bottom: 1px solid var(--borde); background: var(--tarjeta); }
 .tab {

@@ -30,6 +30,12 @@
   <!-- Estado de la ubicación: se llena desde app.js -->
   <p id="avisoUbicacion" class="aviso"></p>
 
+  <!-- Qué categoría estás viendo. Afecta a la lista Y al mapa. -->
+  <div class="barra-categorias">
+    <select id="categoriaActiva" title="Categoría que estás viendo"></select>
+    <button id="btnCategorias" class="btn secundario chico">Administrar</button>
+  </div>
+
   <!-- Pestañas: Lista / Mapa -->
   <nav class="tabs">
     <button class="tab activa" data-vista="lista">Lista</button>
@@ -127,6 +133,8 @@
 
       <button id="btnCerca" class="btn secundario ancho">📍 Cafeterías cerca de mí</button>
 
+      <button id="btnAbrirManual" class="btn secundario ancho">✍️ Escribir los datos a mano</button>
+
       <!-- Tercera vía: traerlas de Google Maps, que sí las tiene todas -->
       <details class="bloque-importar">
         <summary>Traer desde Google Maps</summary>
@@ -201,6 +209,11 @@
         <button id="btnActualizarOSM" class="btn secundario">Buscar horario en OSM</button>
       </div>
 
+      <label class="campo">
+        Categoría
+        <select id="detalleCategoria"></select>
+      </label>
+
       <h3>Horario</h3>
 
       <!-- La vía rápida: copiar la tabla de horarios de Google Maps y pegarla -->
@@ -233,6 +246,83 @@
         <span class="espaciador"></span>
         <button class="btn secundario" data-cerrar>Cancelar</button>
         <button id="btnGuardar" class="btn">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MODAL: AGREGAR A MANO ============ -->
+  <div id="modalManual" class="modal" hidden>
+    <div class="modal-caja">
+      <h2>✍️ Agregar a mano</h2>
+      <p class="ayuda">
+        Para lugares que no están en ningún buscador, o cuando quieres poner
+        tus propios datos.
+      </p>
+
+      <label class="campo">
+        Nombre
+        <input type="text" id="manualNombre" placeholder="Ej. Bar La Esquina" autocomplete="off">
+      </label>
+
+      <label class="campo">
+        Categoría
+        <select id="manualCategoria"></select>
+      </label>
+
+      <label class="campo">
+        Dirección (opcional)
+        <input type="text" id="manualDireccion" placeholder="Calle, número, colonia" autocomplete="off">
+      </label>
+
+      <div class="campo">
+        Ubicación
+        <div class="enlaces">
+          <button id="manualEnMapa" class="btn secundario">Ponerla en el mapa</button>
+          <span id="manualUbicacion" class="ayuda">Sin ubicación todavía</span>
+        </div>
+        <input type="text" id="manualLink" placeholder="…o pega aquí su link de Google Maps" autocomplete="off">
+      </div>
+
+      <label class="campo">
+        Horario (opcional)
+        <textarea id="manualHorario" rows="3"
+          placeholder="lunes	8:00–20:00&#10;sábado	9:00–14:00&#10;domingo	Cerrado"></textarea>
+        <span class="ayuda">
+          Pégalo de Google Maps o escríbelo así. Después puedes afinarlo día por día.
+        </span>
+      </label>
+
+      <p id="manualAviso" class="ayuda"></p>
+
+      <div class="modal-pie">
+        <button class="btn secundario" data-cerrar>Cancelar</button>
+        <span class="espaciador"></span>
+        <button id="manualGuardar" class="btn">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MODAL: ADMINISTRAR CATEGORÍAS ============ -->
+  <div id="modalCategorias" class="modal" hidden>
+    <div class="modal-caja">
+      <h2>🏷️ Categorías</h2>
+      <p class="ayuda">
+        Sirven para que no se te mezclen en la lista ni en el mapa: cafeterías,
+        bares, comida japonesa, lo que quieras.
+      </p>
+
+      <ul id="listaCategorias" class="lista-categorias"></ul>
+
+      <h3>Crear una nueva</h3>
+      <div class="fila">
+        <input type="text" id="nuevaCategoriaEmoji" class="campo-emoji" maxlength="4" placeholder="🍶">
+        <input type="text" id="nuevaCategoriaNombre" placeholder="Nombre (ej. Bares)" autocomplete="off">
+        <button id="btnCrearCategoria" class="btn">Crear</button>
+      </div>
+      <p id="avisoCategorias" class="ayuda"></p>
+
+      <div class="modal-pie">
+        <button class="btn secundario" data-cerrar>Cerrar</button>
       </div>
     </div>
   </div>
@@ -370,6 +460,7 @@
   <script src="horarios.js"></script>
   <script src="osm.js"></script>
   <script src="importar.js"></script>
+  <script src="categorias.js"></script>
   <script src="vigilancia.js"></script>
   <script src="app.js"></script>
 </body>

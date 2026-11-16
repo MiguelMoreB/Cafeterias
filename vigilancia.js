@@ -224,6 +224,9 @@ function cafeteriasCercaYAbiertas() {
   const ajustes = leerAjustes();
 
   return cafeterias
+    // Solo la categoría que estás viendo: si andas buscando bares, no te
+    // avisa de cafeterías.
+    .filter(perteneceAVista)
     .filter(cafe => !(ajustes.soloNoVisitadas && cafe.visitada))
     .map(cafe => ({
       cafe,
