@@ -395,9 +395,26 @@ En **＋ → ✍️ Escribir los datos a mano**: nombre, categoría, dirección,
 horario. Para lugares que no están en ningún buscador o cuando quieres tus propios datos.
 
 La ubicación se pone de dos formas: **tocando el punto en el mapa** o **pegando un link
-de Google Maps**. El horario acepta el mismo formato que el resto de la app (pegado de
-Google Maps o escrito), y si lo dejas vacío se abre el detalle para capturarlo día por
-día. Probado con un bar nocturno: `18:00–02:00` se guarda cruzando la medianoche.
+de Google Maps** (de la dirección larga se sacan las coordenadas exactas). Si dejas el
+horario vacío se abre el detalle para capturarlo día por día, avisando por qué.
+
+**Si escribes un horario y no se entiende, el formulario te lo dice y no guarda.**
+Guardarlo vacío en silencio es lo peor que puede hacer un formulario: parece que
+funcionó y el dato no está.
+
+### Tres fallos que salieron probando esto
+
+1. **`08:00-20:00` no se guardaba.** El lector exigía nombres de día, pero al escribir
+   a mano lo natural es poner solo las horas. Ahora, si en todo el texto no se nombra
+   ningún día, el horario se aplica a los 7. La regla solo aplica cuando no hay NINGÚN
+   día en el texto, para que un bloque pegado de Google Maps nunca se malinterprete.
+2. **`Lunes a Domingo` guardaba solo lunes y domingo.** Los días se ordenaban por el
+   orden de la semana, no por cómo están escritos, así que el rango se leía al revés
+   (domingo→lunes = 2 días). Ahora se ordenan por su posición en el texto, y
+   `viernes a lunes` da viernes, sábado, domingo y lunes.
+3. **"La ventana no se cerraba".** Sí se cerraba, pero como el horario quedaba vacío se
+   abría el detalle encima, sin explicar por qué. Ahora lo dice: *"Agregado sin horario ·
+   captúralo aquí"*.
 
 ## Buscador y cafeterías visitadas
 

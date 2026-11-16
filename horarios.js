@@ -213,6 +213,21 @@ function parsearHorarioPegado(texto) {
   const resultado = horariosVacios();
   let entendimosAlgo = false;
 
+  // Si en TODO el texto no se nombra ni un día, se entiende que ese horario
+  // es para todos los días. Es lo natural al escribirlo a mano: pones
+  // "08:00-20:00" queriendo decir "todos los días de 8 a 8".
+  // Solo aplica cuando no hay ningún día en ninguna línea: así un bloque
+  // pegado de Google Maps nunca se malinterpreta.
+  const mencionaAlgunDia = NOMBRES_DIA.some(d => d.patron.test(String(texto || '')));
+  if (!mencionaAlgunDia) {
+    const turnos = /24\s*(horas|hours|h)\b|todo el d[ií]a/i.test(texto)
+      ? [{ desde: 0, hasta: 1440 }]
+      : rangosConAmPm(lineas.join(' '));
+    if (turnos.length === 0) return null;
+    for (let d = 0; d < 7; d++) resultado[d] = turnos;
+    return resultado;
+  }
+
   for (const linea of lineas) {
     const dias = diasDeLaLinea(linea);
     if (dias.length === 0) continue;
@@ -236,23 +251,33 @@ function parsearHorarioPegado(texto) {
 
 // Qué días menciona la línea. Entiende "lunes a viernes" como un rango.
 function diasDeLaLinea(linea) {
-  const encontrados = NOMBRES_DIA.filter(d => d.patron.test(linea)).map(d => d.dia);
+  const sinHoras = linea.replace(/\d{1,2}[:.]\d{2}/g, '');
+
+  // IMPORTANTE: los días se ordenan por cómo aparecen ESCRITOS, no por el
+  // orden de la semana. Si no, "lunes a domingo" se leía como el rango
+  // domingo→lunes (dos días) en vez de la semana completa.
+  const encontrados = [];
+  for (const d of NOMBRES_DIA) {
+    const donde = sinHoras.match(d.patron);
+    if (donde) encontrados.push({ dia: d.dia, posicion: donde.index });
+  }
   if (encontrados.length === 0) return [];
+  encontrados.sort((a, b) => a.posicion - b.posicion);
 
   // "lunes a viernes" / "lunes - viernes": rango de días.
   const esRango = encontrados.length === 2 &&
-    /\b(a|to|hasta|-|–|—)\b/i.test(linea.replace(/\d{1,2}[:.]\d{2}/g, ''));
+    /\b(a|to|hasta)\b|[-–—]/i.test(sinHoras);
   if (esRango) {
     const dias = [];
-    let i = encontrados[0];
+    let i = encontrados[0].dia;
     for (let paso = 0; paso < 7; paso++) {
       dias.push(i);
-      if (i === encontrados[1]) break;
+      if (i === encontrados[1].dia) break;
       i = (i + 1) % 7;
     }
     return dias;
   }
-  return encontrados;
+  return encontrados.map(e => e.dia);
 }
 
 // Saca los rangos de una línea, entendiendo a.m./p.m. además del formato 24h.

@@ -640,7 +640,17 @@ function guardarManual() {
     return;
   }
 
-  const horarios = parsearHorarioPegado(document.getElementById('manualHorario').value) || horariosVacios();
+  // Si escribiste un horario y no se entendió, hay que decirlo: guardarlo
+  // vacío en silencio es lo peor que puede hacer un formulario.
+  const textoHorario = document.getElementById('manualHorario').value.trim();
+  const horarios = textoHorario ? parsearHorarioPegado(textoHorario) : horariosVacios();
+
+  if (textoHorario && !horarios) {
+    aviso.textContent = 'No entendí ese horario. Prueba así: "08:00-20:00" (todos los días), ' +
+      '"lunes a viernes 08:00-20:00", o pégalo tal cual de Google Maps.';
+    return;
+  }
+
   const nuevo = construirCafe(lugar, horarios);
   nuevo.categoria = lugar.categoria;
 
@@ -653,10 +663,15 @@ function guardarManual() {
 
   refrescarTodo();
   cerrarModales();
-  toast('Agregado: ' + nombre);
 
-  // Abrimos el detalle para que puedas afinar el horario día por día.
-  if (!tieneAlgunTurno(horarios)) abrirDetalle(nuevo.id);
+  // Si quedó sin horario abrimos el detalle para capturarlo, pero avisando
+  // por qué: si no, parece que la ventana "no se cerró".
+  if (!tieneAlgunTurno(horarios)) {
+    toast('Agregado sin horario · captúralo aquí');
+    abrirDetalle(nuevo.id);
+  } else {
+    toast('Agregado: ' + nombre);
+  }
 }
 
 /* ======================= 5b. Modo paseo (avisos) ======================== */
