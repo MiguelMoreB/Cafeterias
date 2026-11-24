@@ -1,0 +1,220 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-24T20:30:00Z",
+  "title": "Design System: Mis Lugares",
+  "extensions": {
+    "colorMeta": {
+      "papel": {
+        "role": "neutral",
+        "displayName": "Cartulina",
+        "canonical": "#f5eddd",
+        "darkValue": "#14110c",
+        "tonalRamp": ["#14110c", "#241f16", "#3a3328", "#5d5039", "#776748", "#cdbe9e", "#e7dcc3", "#f5eddd"]
+      },
+      "papel-2": {
+        "role": "neutral",
+        "displayName": "Cartulina Segunda",
+        "canonical": "#efe6d2",
+        "darkValue": "#1c1812"
+      },
+      "papel-3": {
+        "role": "neutral",
+        "displayName": "Cartulina Hundida",
+        "canonical": "#e7dcc3",
+        "darkValue": "#24201a"
+      },
+      "tinta": {
+        "role": "neutral",
+        "displayName": "Tinta",
+        "canonical": "#17120c",
+        "darkValue": "#f2e9d6"
+      },
+      "tinta-2": {
+        "role": "neutral",
+        "displayName": "Tinta Segunda",
+        "canonical": "#5d5039",
+        "darkValue": "#a5947a",
+        "contrast": "6.7:1 sobre cartulina"
+      },
+      "tinta-3": {
+        "role": "neutral",
+        "displayName": "Tinta Tercera",
+        "canonical": "#776748",
+        "darkValue": "#9a8b72",
+        "contrast": "4.7:1 sobre cartulina"
+      },
+      "filete": {
+        "role": "neutral",
+        "displayName": "Filete",
+        "canonical": "#cdbe9e",
+        "darkValue": "#3a3328"
+      },
+      "marca": {
+        "role": "primary",
+        "displayName": "Rojo de Estampa",
+        "canonical": "#be2d1c",
+        "darkValue": "#ff6a53",
+        "tonalRamp": ["#2d0a06", "#4c110b", "#6e1910", "#932216", "#be2d1c", "#e0543f", "#f08a78", "#fac6bc"]
+      },
+      "sello-abierta": {
+        "role": "secondary",
+        "displayName": "Verde de Sello",
+        "canonical": "#146b43",
+        "darkValue": "#46c98a",
+        "tonalRamp": ["#04180e", "#07301d", "#0b4a2d", "#0f5a38", "#146b43", "#2a9262", "#46c98a", "#a9e8c7"]
+      },
+      "sello-pronto": {
+        "role": "secondary",
+        "displayName": "Naranja Quemado",
+        "canonical": "#9e4807",
+        "darkValue": "#f09a4a"
+      },
+      "sello-cerrada": {
+        "role": "secondary",
+        "displayName": "Violeta de Tinta",
+        "canonical": "#5b45a0",
+        "darkValue": "#ae9bf0"
+      },
+      "sello-sin": {
+        "role": "secondary",
+        "displayName": "Ocre Apagado",
+        "canonical": "#6e6049",
+        "darkValue": "#93846c"
+      },
+      "estrella": {
+        "role": "tertiary",
+        "displayName": "Oro de Calificación",
+        "canonical": "#a8750c",
+        "darkValue": "#e6b84f"
+      },
+      "peligro": {
+        "role": "tertiary",
+        "displayName": "Rojo de Borrar",
+        "canonical": "#b3261e",
+        "darkValue": "#ff7a6b"
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Títulos de modal." },
+      "title": { "displayName": "Título", "purpose": "El nombre del lugar en cada boleto." },
+      "cifra": { "displayName": "Cifra", "purpose": "Los kilómetros. Lo más grande de la pantalla." },
+      "body": { "displayName": "Cuerpo", "purpose": "Texto corrido, columna máxima de 760px." },
+      "label": { "displayName": "Etiqueta", "purpose": "Folios, contadores, leyenda, días. Piso de 11px." }
+    },
+    "shadows": [
+      { "name": "globo-mapa", "value": "0 6px 20px rgba(0,0,0,0.28)", "purpose": "El globo de Leaflet sobre el mapa. Fuera del papel." },
+      { "name": "mensajito", "value": "0 8px 24px rgba(0,0,0,0.3)", "purpose": "El toast flotante. Fuera del papel." }
+    ],
+    "motion": [
+      { "name": "salida", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Salida exponencial. Única curva del sistema." },
+      { "name": "prensada", "value": "360ms", "purpose": "El sello al pintarse: escala 1.12 a 1, rotación -5deg a -2.5deg, opacidad 0 a 1. Único momento autoral." },
+      { "name": "cruce-chip", "value": "340ms", "purpose": "El chip de la cápsula de paseo cruzando de izquierda a derecha al encenderse." },
+      { "name": "hoja", "value": "220ms", "purpose": "La hoja del modal subiendo 14px. Afordancia, no efecto." }
+    ],
+    "breakpoints": [
+      { "name": "estrecho", "value": "400px" },
+      { "name": "columna", "value": "720px" },
+      { "name": "caja-centrada", "value": "620px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Sello de estado",
+      "kind": "chip",
+      "refersTo": "sello-abierta",
+      "description": "La jugada de la casa: el estado llega estampado, con la palabra dentro, nunca solo con color.",
+      "html": "<span class=\"ds-sello ds-sello-abierta\">Abierto</span> <span class=\"ds-sello ds-sello-cerrada\">Cerrado</span> <span class=\"ds-sello ds-sello-sin\">Sin horario</span>",
+      "css": ".ds-sello { display: inline-block; font-family: 'Chivo Mono', ui-monospace, monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap; padding: 3px 7px; border: 2px solid currentColor; border-radius: 4px; transform: rotate(-2.5deg); animation: ds-prensar 360ms cubic-bezier(.16,1,.3,1) both; } .ds-sello-abierta { color: #146b43; } .ds-sello-cerrada { color: #5b45a0; } .ds-sello-sin { color: #6e6049; border-style: dashed; } @keyframes ds-prensar { from { transform: rotate(-5deg) scale(1.12); opacity: 0; } to { transform: rotate(-2.5deg) scale(1); opacity: 1; } }"
+    },
+    {
+      "name": "Boleto",
+      "kind": "card",
+      "refersTo": "boleto",
+      "description": "Una fila del talonario: folio, nombre, dirección de una línea, cifra de kilómetros y la fila del sello.",
+      "html": "<li class=\"ds-boleto\"><div class=\"ds-boleto-cuerpo\"><span class=\"ds-folio\">01 · el más cercano</span><h3>Tres Tigres Felices</h3><p class=\"ds-dir\">Av. P.º de la Reforma 369, Cuauhtémoc</p><div class=\"ds-km\"><b>0.4</b><span>KM</span></div><div class=\"ds-meta\"><span class=\"ds-sello ds-sello-abierta\">Abierto</span><span class=\"ds-estado\">cierra 21:00</span><span class=\"ds-nota\"><i>★</i> 4.7</span></div></div></li>",
+      "css": ".ds-boleto { list-style: none; border-bottom: 1px solid #cdbe9e; background: #f5eddd; } .ds-boleto-cuerpo { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: start; column-gap: 14px; padding: 11px 16px 10px; cursor: pointer; font-family: Archivo, system-ui, sans-serif; color: #17120c; } .ds-boleto-cuerpo:hover { background: color-mix(in srgb, #cdbe9e 30%, transparent); } .ds-folio { grid-column: 1; font-family: 'Chivo Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #776748; } .ds-boleto h3 { grid-column: 1; margin: 1px 0 0; font-size: 19px; font-weight: 800; line-height: 1.12; letter-spacing: -0.015em; } .ds-dir { grid-column: 1; margin: 3px 0 0; font-size: 12.5px; color: #5d5039; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; } .ds-km { grid-column: 2; grid-row: 1 / span 3; align-self: center; text-align: right; line-height: 1; } .ds-km b { display: block; font-family: 'Chivo Mono', monospace; font-variant-numeric: tabular-nums; font-weight: 700; font-size: 29px; letter-spacing: -0.045em; } .ds-km span { font-family: 'Chivo Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; color: #5d5039; } .ds-meta { grid-column: 1 / -1; display: flex; align-items: center; flex-wrap: wrap; gap: 8px 10px; margin-top: 8px; } .ds-estado { font-size: 12.5px; color: #5d5039; } .ds-nota { font-family: 'Chivo Mono', monospace; font-variant-numeric: tabular-nums; font-size: 13px; font-weight: 700; } .ds-nota i { font-style: normal; color: #a8750c; }"
+    },
+    {
+      "name": "Cápsula de estado (modo paseo)",
+      "kind": "button",
+      "refersTo": "capsula",
+      "description": "El chip cruza de izquierda a derecha al encenderse. Único control que anuncia algo corriendo.",
+      "html": "<button class=\"ds-capsula\" aria-pressed=\"false\"><span class=\"ds-chip\"></span>Paseo</button> <button class=\"ds-capsula\" aria-pressed=\"true\"><span class=\"ds-chip\"></span>Paseo</button>",
+      "css": ".ds-capsula { position: relative; display: inline-flex; align-items: center; min-height: 38px; padding: 0 14px 0 30px; border: 1.5px solid currentColor; border-radius: 999px; background: #17120c; color: #f5eddd; font: 600 13px/1 Archivo, sans-serif; letter-spacing: 0.02em; cursor: pointer; transition: padding 300ms cubic-bezier(.16,1,.3,1), background-color 200ms linear; } .ds-capsula .ds-chip { position: absolute; left: 11px; top: 50%; width: 10px; height: 10px; margin-top: -5px; border-radius: 50%; background: currentColor; transition: left 340ms cubic-bezier(.16,1,.3,1); } .ds-capsula[aria-pressed=\"true\"] { padding: 0 30px 0 14px; background: #146b43; border-color: #146b43; color: #fff; } .ds-capsula[aria-pressed=\"true\"] .ds-chip { left: calc(100% - 21px); } .ds-capsula:focus-visible { outline: 2px solid #f5eddd; outline-offset: 2px; }"
+    },
+    {
+      "name": "Cápsula de filtro",
+      "kind": "chip",
+      "refersTo": "filtro-capsula",
+      "description": "Aro con chip hueco; al activarse se rellena de tinta y el chip se vuelve sólido.",
+      "html": "<label class=\"ds-filtro\"><input type=\"checkbox\"><span class=\"ds-fchip\"></span>Abiertos ahora</label> <label class=\"ds-filtro\"><input type=\"checkbox\" checked><span class=\"ds-fchip\"></span>Ocultar visitados</label>",
+      "css": ".ds-filtro { display: inline-flex; align-items: center; gap: 7px; min-height: 38px; padding: 0 13px; border: 1.5px solid #cdbe9e; border-radius: 999px; font: 600 13px Archivo, sans-serif; color: #5d5039; cursor: pointer; user-select: none; } .ds-filtro input { position: absolute; opacity: 0; width: 0; height: 0; } .ds-fchip { width: 11px; height: 11px; border: 1.5px solid currentColor; border-radius: 50%; flex: none; } .ds-filtro:has(input:checked) { background: #17120c; border-color: #17120c; color: #f5eddd; } .ds-filtro:has(input:checked) .ds-fchip { background: currentColor; } .ds-filtro:has(input:focus-visible) { outline: 2px solid #a62b1b; outline-offset: 2px; }"
+    },
+    {
+      "name": "Botón primario",
+      "kind": "button",
+      "refersTo": "boton-primario",
+      "description": "Relleno de tinta, plano. Ni sombra ni degradado.",
+      "html": "<button class=\"ds-btn\">Guardar</button> <button class=\"ds-btn ds-btn-sec\">Cancelar</button> <button class=\"ds-btn ds-btn-pel\">Eliminar</button>",
+      "css": ".ds-btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 44px; padding: 0 15px; font: 600 14px/1.2 Archivo, sans-serif; letter-spacing: 0.01em; border: 1.5px solid #17120c; border-radius: 6px; background: #17120c; color: #f5eddd; cursor: pointer; } .ds-btn:active { transform: translateY(1px); } .ds-btn:focus-visible { outline: 2px solid #a62b1b; outline-offset: 2px; } .ds-btn-sec { background: transparent; color: #17120c; } .ds-btn-pel { background: transparent; color: #b3261e; border-color: #b3261e; }"
+    },
+    {
+      "name": "Campo de formulario",
+      "kind": "input",
+      "refersTo": "campo",
+      "description": "Caja reglada de formulario, no burbuja. Cursor en rojo de estampa.",
+      "html": "<input class=\"ds-campo\" type=\"text\" placeholder=\"Buscar por nombre, colonia o calle\">",
+      "css": ".ds-campo { font-family: Archivo, system-ui, sans-serif; font-size: 15px; color: #17120c; background: #efe6d2; border: 1.5px solid #cdbe9e; border-radius: 6px; padding: 10px 12px; min-height: 44px; width: 100%; caret-color: #be2d1c; } .ds-campo::placeholder { color: #776748; opacity: 1; } .ds-campo:focus-visible { outline: 2px solid #a62b1b; outline-offset: 2px; }"
+    },
+    {
+      "name": "Estrellas con decimales",
+      "kind": "custom",
+      "refersTo": "estrellas",
+      "description": "Dos estrellas encimadas; la dorada se recorta al porcentaje. El recorte se mide sobre el glifo, nunca sobre el botón.",
+      "html": "<div class=\"ds-estrellas\" style=\"--relleno:100%\"><button class=\"ds-estrella\"><span class=\"ds-glifo\">★</span></button></div><div class=\"ds-estrellas\" style=\"--relleno:70%\"><button class=\"ds-estrella\"><span class=\"ds-glifo\">★</span></button></div><div class=\"ds-estrellas\" style=\"--relleno:0%\"><button class=\"ds-estrella\"><span class=\"ds-glifo\">★</span></button></div>",
+      "css": ".ds-estrellas { display: inline-flex; } .ds-estrella { width: 42px; height: 42px; padding: 0; background: none; border: 0; cursor: pointer; display: grid; place-items: center; } .ds-glifo { position: relative; display: inline-block; font-size: 30px; line-height: 1; color: #776748; } .ds-glifo::after { content: '★'; position: absolute; left: 0; top: 0; color: #a8750c; clip-path: inset(0 calc(100% - var(--relleno, 0%)) 0 0); } .ds-estrella:focus-visible { outline: 2px solid #a62b1b; outline-offset: 2px; }"
+    },
+    {
+      "name": "Barra de abajo",
+      "kind": "nav",
+      "refersTo": "accion-fuerte",
+      "description": "Campo de tinta fijo en la zona del pulgar: pestañas a la izquierda, acciones a la derecha.",
+      "html": "<nav class=\"ds-abajo\"><div class=\"ds-tabs\"><button class=\"ds-tab ds-tab-on\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\"><path d=\"M4 7h16M4 12h16M4 17h10\"/></svg>Lista</button><button class=\"ds-tab\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M9 4.5L3.5 6.8v12.7L9 17.2M9 4.5l6 2.3M9 4.5v12.7M15 6.8l5.5-2.3v12.7L15 19.5M15 6.8v12.7M9 17.2l6 2.3\"/></svg>Mapa</button></div><div class=\"ds-acciones\"><button class=\"ds-accion\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\"><path d=\"M12 5v14M5 12h14\"/></svg>Agregar</button><button class=\"ds-accion ds-accion-fuerte\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\"><circle cx=\"12\" cy=\"12\" r=\"7\"/><circle cx=\"12\" cy=\"12\" r=\"2.25\"/><path d=\"M12 2v3M12 19v3M2 12h3M19 12h3\"/></svg>Ubicación</button></div></nav>",
+      "css": ".ds-abajo { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: #17120c; color: #f5eddd; font-family: Archivo, sans-serif; } .ds-tabs { display: flex; gap: 2px; padding: 3px; border: 1.5px solid currentColor; border-radius: 999px; } .ds-tab { display: inline-flex; align-items: center; gap: 6px; min-height: 38px; border-radius: 999px; padding: 0 14px; border: 0; background: transparent; color: inherit; font: 700 13px/1 Archivo, sans-serif; letter-spacing: 0.02em; cursor: pointer; } .ds-tab-on { background: #f5eddd; color: #17120c; } .ds-acciones { display: flex; gap: 8px; margin-left: auto; } .ds-accion { display: inline-flex; align-items: center; gap: 7px; min-height: 44px; padding: 0 14px; border: 1.5px solid currentColor; border-radius: 999px; background: transparent; color: #f5eddd; font: 700 13px/1 Archivo, sans-serif; cursor: pointer; } .ds-accion-fuerte { background: #be2d1c; border-color: #be2d1c; color: #fff; } .ds-accion:active { transform: translateY(1px); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Boleto y Sello",
+    "overview": "La lista no es un catálogo: es un talonario. Cada lugar guardado es un boleto impreso en cartulina cálida, y el dato que de verdad decide —¿está abierto?— llega sellado encima, con la palabra escrita y la estampa ladeada como si alguien la hubiera puesto a mano. Lo visitado se imprime desvaído, que es lo que le pasa a un boleto usado. Es un sistema para leer de pie, con una mano, caminando: la jerarquía la hace el tamaño y no el color, el estado siempre lleva texto además de tinta, y lo que más se toca vive abajo, en la zona del pulgar. El mundo es de imprenta, no de pantalla: color plano sin un solo degradado, filetes de un píxel en lugar de cajas flotantes, y un papel que nunca es blanco ni gris neutro.",
+    "keyCharacteristics": [
+      "Cartulina cálida de fondo, tinta casi negra, cuatro tintas de sello",
+      "Cero degradados, cero sombras de color, cero tarjetas flotantes",
+      "Toda medida en monoespaciada de cifras tabulares",
+      "El estado nunca se comunica solo por color: la palabra va dentro del sello",
+      "Barras de tinta arriba y abajo; el talonario de papel en medio"
+    ],
+    "rules": [
+      { "name": "La Regla del Sello", "body": "Las cuatro tintas de sello (verde, naranja, violeta, ocre) solo dicen estado. No decoran, no marcan selección, no rellenan botones. Si una pantalla nueva necesita un acento, usa tinta o el rojo de estampa.", "section": "colors" },
+      { "name": "La Regla de la Palabra", "body": "Ningún estado se comunica solo por color. El sello siempre lleva su palabra, porque la app se usa con sol encima de la pantalla y porque el color solo excluye a quien no distingue rojo de verde.", "section": "colors" },
+      { "name": "La Regla de la Medida", "body": "Chivo Mono es para medir, no para verse técnico: kilómetros, horas, folios, calificaciones, rangos de horario. Texto corrido en monoespaciada es un error del sistema.", "section": "typography" },
+      { "name": "La Regla del Piso de 11", "body": "Ningún texto funcional baja de 11px, por delicado que se vea. La app se lee caminando.", "section": "typography" },
+      { "name": "La Regla del Papel Plano", "body": "Nada de lo que vive sobre la cartulina proyecta sombra. Si algo necesita separarse, lleva filete, banda o borde completo. Si necesita un borde, es entero.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do usar filete, banda alterna o borde entero para separar; el sistema no tiene sombras sobre el papel.",
+      "Do poner toda medida en Chivo Mono con cifras tabulares.",
+      "Do escribir la palabra dentro de cada sello, siempre, aunque el color ya lo diga.",
+      "Do dejar los emojis de categoría como están: son datos del usuario.",
+      "Do probar cualquier pantalla nueva en los dos temas."
+    ],
+    "donts": [
+      "Don't usar las tintas de sello para nada que no sea estado.",
+      "Don't meter degradados, vidrio esmerilado ni sombras de color.",
+      "Don't envolver los boletos en tarjetas con sombra.",
+      "Don't bajar texto funcional de 11px.",
+      "Don't sustituir un ícono por un emoji o por un carácter tipográfico.",
+      "Don't poner un filete de un solo lado sobre una caja redondeada.",
+      "Don't añadir un segundo momento de movimiento: la prensada del sello es el único."
+    ]
+  }
+}

@@ -1,388 +1,975 @@
 /* =========================================================================
-   styles.css — Aspecto de la app. Paleta "café": marrones y crema.
-   Las variables de :root son colores con nombre; si quieres cambiar el
-   tema, cambias solo estas líneas y se actualiza toda la app.
+   styles.css — "Boleto y Sello"
+
+   La idea: tu lista es un talonario. Cada lugar es un boleto y su estado
+   llega SELLADO encima, con la palabra escrita, no solo con color. Así se
+   lee bajo el sol, de noche, y también si no distingues rojo de verde.
+
+   Reglas del mundo, por si alguna vez lo tocas:
+     · Fondo de cartulina cálida, nunca blanco ni gris neutro.
+     · Filetes de un píxel en vez de tarjetas con sombra. Cero degradados.
+     · Las tintas de sello (verde / naranja / violeta / ocre) SOLO dicen
+       estado. Nunca se usan para decorar.
+     · La jerarquía la hace el tamaño: los kilómetros van enormes y las
+       etiquetas diminutas.
+     · Toda medida (km, horas, folios) va en Chivo Mono. Todo lo demás, en
+       Archivo. Las dos viven en assets/fonts: la app abre sin internet.
    ========================================================================= */
+
+/* ---------- Tipografías propias (no CDN: funcionan sin señal) ---------- */
+@font-face {
+  font-family: "Archivo";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("assets/fonts/archivo-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Archivo";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("assets/fonts/archivo-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Chivo Mono";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("assets/fonts/chivo-mono-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Chivo Mono";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("assets/fonts/chivo-mono-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* ---------- Los colores con nombre. Tema claro: día, sol en la pantalla ---------- */
 :root {
-  --cafe: #4b2e1e;
-  --cafe-claro: #7a5237;
-  --crema: #faf5ef;
-  --tarjeta: #ffffff;
-  --texto: #2a211c;
-  --suave: #8a7d74;
-  --borde: #e7ddd3;
-  --verde: #1f8a4c;
-  --ambar: #d98a00;
-  --rojo: #c0392b;
-  --gris: #9aa0a6;
+  --papel:        #f5eddd;  /* cartulina de boleto */
+  --papel-2:      #efe6d2;  /* banda alterna y campos */
+  --papel-3:      #e7dcc3;  /* hundido */
+  --tinta:        #17120c;
+  --tinta-2:      #5d5039;  /* secundario: teñido del papel, nunca gris */
+  --tinta-3:      #776748;  /* terciario y texto de pista */
+  --filete:       #cdbe9e;  /* el filete de un píxel que divide el talonario */
+  --barra:        #17120c;  /* cabecera y barra de abajo */
+  --tinta-barra:  #f5eddd;  /* lo que se escribe encima de esas barras */
+
+  /* Tintas de sello. Solo dicen estado. */
+  --abierta:      #146b43;
+  --pronto:       #9e4807;
+  --cerrada:      #5b45a0;
+  --sin:          #6e6049;
+
+  --peligro:      #b3261e;
+  --marca:        #be2d1c;  /* el rojo de la estampa, para la marca */
+  --estrella:     #a8750c;  /* oro de calificación: NO es una tinta de sello */
+  --foco:         #a62b1b;
+
+  --velo:         rgba(23, 18, 12, .55);
+  --radio:        6px;
+  --mono:         "Chivo Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --salida:       cubic-bezier(.16, 1, .3, 1);  /* salida exponencial */
+}
+
+/* ---------- Tema oscuro: la misma app de noche ---------- */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --papel:        #14110c;
+    --papel-2:      #1c1812;
+    --papel-3:      #24201a;
+    --tinta:        #f2e9d6;
+    --tinta-2:      #a5947a;
+    --tinta-3:      #9a8b72;
+    --filete:       #3a3328;
+    --barra:        #0c0a07;
+    --tinta-barra:  #f2e9d6;
+
+    --abierta:      #46c98a;
+    --pronto:       #f09a4a;
+    --cerrada:      #ae9bf0;
+    --sin:          #93846c;
+
+    --peligro:      #ff7a6b;
+    --marca:        #ff6a53;
+    --estrella:     #e6b84f;
+    --foco:         #ff8c7a;
+
+    --velo:         rgba(0, 0, 0, .66);
+  }
 }
 
 * { box-sizing: border-box; }
 
+html { color-scheme: light dark; }
+
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  background: var(--crema);
-  color: var(--texto);
-  padding-bottom: 32px;
+  font-family: Archivo, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 15px;
+  line-height: 1.45;
+  background: var(--papel);
+  color: var(--tinta);
+  /* Hueco para la barra fija de abajo. */
+  padding-bottom: calc(74px + env(safe-area-inset-bottom));
+  -webkit-text-size-adjust: 100%;
 }
 
-/* ---------- Barra superior ---------- */
+/* Las superficies que no dibujé yo también son parte del diseño. */
+::selection { background: var(--marca); color: #fff; }
+input, textarea, select { caret-color: var(--marca); }
+* { scrollbar-width: thin; scrollbar-color: var(--filete) transparent; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: var(--filete); }
+::-webkit-scrollbar-track { background: transparent; }
+
+:focus-visible {
+  outline: 2px solid var(--foco);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+/* Dentro de las barras de tinta, el anillo de foco tiene que verse sobre negro. */
+.barra :focus-visible, .barra-abajo :focus-visible { outline-color: var(--tinta-barra); }
+
+code {
+  font-family: var(--mono);
+  font-size: .88em;
+  background: var(--papel-3);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+/* El tarro de íconos: está en el HTML pero no se ve. */
+.sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+.ico {
+  width: 20px; height: 20px;
+  flex: none;
+  display: inline-block;
+  vertical-align: -4px;
+}
+
+/* =========================================================================
+   La cabeza del talonario
+   ========================================================================= */
 .barra {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 14px 16px;
-  background: var(--cafe);
+  padding: calc(12px + env(safe-area-inset-top)) 16px 12px;
+  background: var(--barra);
+  color: var(--tinta-barra);
+}
+.marca { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.ico-logo { width: 28px; height: 28px; color: var(--marca); flex: none; }
+.barra h1 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -.015em;
+}
+
+/* El modo paseo es un ESTADO, no una acción: cápsula con chip que cruza. */
+.capsula {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 0 14px 0 30px;
+  border: 1.5px solid currentColor;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--tinta-barra);
+  font: 600 13px/1 Archivo, sans-serif;
+  letter-spacing: .02em;
+  cursor: pointer;
+  transition: padding .3s var(--salida), background-color .2s linear;
+}
+.capsula .chip {
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  width: 10px; height: 10px;
+  margin-top: -5px;
+  border-radius: 50%;
+  background: currentColor;
+  transition: left .34s var(--salida);
+}
+.capsula[aria-pressed="true"] {
+  padding: 0 30px 0 14px;
+  background: var(--abierta);
+  border-color: var(--abierta);
   color: #fff;
+}
+@media (prefers-color-scheme: dark) {
+  /* De noche los colores vivos son claros: encima va tinta, no blanco. */
+  .capsula[aria-pressed="true"],
+  .btn-accion.fuerte,
+  .visitada-caja:has(input:checked)::before { color: #0c0a07; }
+}
+.capsula[aria-pressed="true"] .chip { left: calc(100% - 21px); }
+
+/* =========================================================================
+   Las lengüetas de categoría. Se quedan pegadas arriba al hacer scroll,
+   porque cambiar de categoría es lo que más cambia lo que ves.
+   ========================================================================= */
+.barra-categorias {
   position: sticky;
   top: 0;
   z-index: 500;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 9px 16px;
+  background: var(--papel-2);
+  border-bottom: 1px solid var(--filete);
 }
-.barra h1 { font-size: 20px; margin: 0; }
-.acciones { display: flex; gap: 8px; }
-
-.btn-icono {
-  width: 40px; height: 40px;
-  border: none; border-radius: 50%;
-  background: rgba(255,255,255,.15);
-  color: #fff; font-size: 20px;
-  display: grid; place-items: center;
-  cursor: pointer;
-}
-.btn-icono:active { background: rgba(255,255,255,.3); }
-.btn-icono.activo { background: var(--verde); }
+.barra-categorias select { flex: 1; min-width: 0; }
 
 .aviso {
-  margin: 0; padding: 8px 16px;
-  font-size: 13px; color: var(--suave);
-  background: #f3ece4;
+  margin: 0;
+  padding: 9px 16px;
+  font-size: 13px;
+  color: var(--tinta-2);
+  background: var(--papel-3);
+  border-bottom: 1px solid var(--filete);
 }
 .aviso:empty { display: none; }
-.aviso-tocable {
-  background: #fff3d6; color: #8a6100; font-weight: 600;
-  cursor: pointer; border-bottom: 1px solid #f0dcb8;
+.aviso-tocable { text-decoration: underline; cursor: pointer; }
+
+/* =========================================================================
+   Campos: cajas regladas de formulario, no burbujas
+   ========================================================================= */
+select,
+input[type="text"],
+input[type="search"],
+input[type="time"],
+textarea {
+  font-family: inherit;
+  font-size: 15px;
+  color: var(--tinta);
+  background: var(--papel-2);
+  border: 1.5px solid var(--filete);
+  border-radius: var(--radio);
+  padding: 10px 12px;
+  min-height: 44px;
+  width: 100%;
+}
+textarea { min-height: 72px; line-height: 1.4; resize: vertical; }
+input::placeholder, textarea::placeholder { color: var(--tinta-3); opacity: 1; }
+select {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
+                    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: calc(100% - 17px) 50%, calc(100% - 12px) 50%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 34px;
 }
 
-/* ---------- Barra de categorías ---------- */
-.barra-categorias {
-  display: flex; gap: 8px; align-items: center;
-  padding: 10px 16px; background: var(--tarjeta);
-  border-bottom: 1px solid var(--borde);
+.campo { display: block; margin: 14px 0; font-size: 13px; font-weight: 600; color: var(--tinta-2); }
+.campo > select, .campo > input, .campo > textarea { margin-top: 6px; }
+.campo textarea { font-family: var(--mono); font-size: 13px; }
+
+.fila { display: flex; gap: 8px; align-items: stretch; }
+.fila input { flex: 1; min-width: 0; }
+
+.ayuda { font-size: 13px; color: var(--tinta-2); margin: 8px 0; font-weight: 400; }
+.ayuda a { color: var(--tinta); }
+.campo .ayuda { display: block; margin-top: 5px; }
+
+/* =========================================================================
+   Botones. Planos: ni sombras ni degradados.
+   ========================================================================= */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 0 15px;
+  font: 600 14px/1.2 Archivo, sans-serif;
+  letter-spacing: .01em;
+  text-align: center;
+  text-decoration: none;
+  border: 1.5px solid var(--tinta);
+  border-radius: var(--radio);
+  background: var(--tinta);
+  color: var(--papel);
+  cursor: pointer;
 }
-.barra-categorias select {
-  flex: 1; font-size: 15px; font-weight: 600; color: var(--cafe);
+.btn.secundario { background: transparent; color: var(--tinta); }
+.btn.peligro { background: transparent; color: var(--peligro); border-color: var(--peligro); }
+.btn.ancho { width: 100%; margin-top: 9px; }
+.btn.chico { min-height: 38px; padding: 0 11px; font-size: 13px; }
+.btn[disabled] { opacity: .45; cursor: not-allowed; }
+.btn:active { transform: translateY(1px); }
+
+.btn-texto {
+  background: none; border: 0; padding: 6px 2px;
+  color: var(--tinta-2); font: 600 13px Archivo, sans-serif;
+  text-decoration: underline; cursor: pointer;
 }
 
-.lista-categorias { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 8px; }
-.lista-categorias li {
-  background: var(--tarjeta); border: 1px solid var(--borde);
-  border-radius: 10px; padding: 10px 12px;
-}
-.lista-categorias strong { display: block; font-size: 15px; }
-.lista-categorias .ayuda { margin: 2px 0 0; }
-.campo-emoji { width: 64px; text-align: center; font-size: 18px; flex: 0 0 auto; }
-
-/* Marcador con emoji, para cuando ves todas las categorías juntas */
-.marcador.con-emoji {
-  width: 26px; height: 26px; font-size: 14px;
-  display: grid; place-items: center; line-height: 1;
-}
-
-/* ---------- Pestañas ---------- */
-.tabs { display: flex; border-bottom: 1px solid var(--borde); background: var(--tarjeta); }
-.tab {
-  flex: 1; padding: 12px; border: none; background: none;
-  font-size: 15px; color: var(--suave); cursor: pointer;
-  border-bottom: 3px solid transparent;
-}
-.tab.activa { color: var(--cafe); font-weight: 600; border-bottom-color: var(--cafe); }
-
-/* ---------- Buscador ---------- */
-.buscador { position: relative; padding: 12px 16px 0; }
-.buscador input {
-  width: 100%; padding: 11px 36px 11px 12px;
-  border: 1px solid var(--borde); border-radius: 10px;
-  font-size: 15px; background: var(--tarjeta);
-}
 .btn-limpiar {
-  position: absolute; right: 24px; top: 20px;
-  width: 26px; height: 26px; border: none; border-radius: 50%;
-  background: var(--borde); color: var(--texto);
-  font-size: 13px; cursor: pointer; display: grid; place-items: center;
+  flex: none;
+  width: 36px; height: 36px;
+  display: grid; place-items: center;
+  border: 0; border-radius: var(--radio);
+  background: transparent;
+  color: var(--tinta-2);
+  cursor: pointer;
 }
-/* Igual que con los modales: sin esta línea, el display:grid de arriba le
-   gana al atributo hidden y el botón se vería siempre. */
 .btn-limpiar[hidden] { display: none; }
 
+/* =========================================================================
+   Buscador y filtros
+   ========================================================================= */
+.buscador {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px 0;
+}
+.buscador .lupa { color: var(--tinta-2); }
+.buscador input { flex: 1; min-width: 0; }
+.buscador input[type="search"]::-webkit-search-cancel-button { display: none; }
+
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 11px 16px;
+}
+.filtros select { width: auto; min-height: 38px; padding: 6px 32px 6px 11px; font-size: 13px; font-weight: 600; }
+
+/* Cápsula de filtro: el chip se rellena cuando el filtro está puesto. */
+.filtro {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 0 13px;
+  border: 1.5px solid var(--filete);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tinta-2);
+  cursor: pointer;
+  user-select: none;
+}
+.filtro input[type="checkbox"] { position: absolute; opacity: 0; width: 0; height: 0; }
+.filtro .chip {
+  width: 11px; height: 11px;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  flex: none;
+}
+.filtro:has(input:checked) {
+  background: var(--tinta);
+  border-color: var(--tinta);
+  color: var(--papel);
+}
+.filtro:has(input:checked) .chip { background: currentColor; }
+.filtro:has(input:focus-visible) { outline: 2px solid var(--foco); outline-offset: 2px; }
+
 .contador {
-  margin: 0; padding: 0 16px 8px;
-  font-size: 13px; color: var(--suave);
+  margin: 0 0 0 auto;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--tinta-2);
 }
 .contador:empty { display: none; }
 
-/* ---------- Buscar por horario ---------- */
-.planear { margin: 0 16px 8px; }
+/* Planear otro día */
+.planear { margin: 0 16px 14px; border: 1.5px solid var(--filete); border-radius: var(--radio); }
 .planear summary {
-  cursor: pointer; font-size: 14px; color: var(--cafe);
-  font-weight: 600; padding: 6px 0;
-}
-.planear-campos {
-  display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0;
-}
-.planear-campos select, .planear-campos input { flex: 1 1 140px; font-size: 14px; }
-.planear .ayuda { margin: 4px 0 0; }
-
-/* Lista de la pantalla "Cerca de ti" */
-.lista-cerca { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
-.lista-cerca .tarjeta { cursor: default; align-items: center; }
-.lista-cerca .tarjeta-cuerpo { cursor: pointer; }
-
-/* ---------- Filtros ---------- */
-.filtros {
-  display: flex; align-items: center; flex-wrap: wrap;
-  gap: 8px 14px; padding: 10px 16px; font-size: 14px;
-}
-.filtros select { margin-left: auto; }
-.filtro { display: flex; align-items: center; gap: 6px; color: var(--suave); }
-select, input[type="text"], textarea {
-  font: inherit; padding: 8px 10px;
-  border: 1px solid var(--borde); border-radius: 8px;
-  background: var(--tarjeta); color: var(--texto);
-}
-
-/* ---------- Lista de cafeterías ---------- */
-.lista { list-style: none; margin: 0; padding: 0 16px; display: grid; gap: 10px; }
-
-.tarjeta {
-  background: var(--tarjeta);
-  border: 1px solid var(--borde);
-  border-left: 5px solid var(--gris);
-  border-radius: 12px;
-  padding: 12px 14px;
+  display: flex; align-items: center; gap: 8px;
+  padding: 11px 13px;
+  font-size: 13px; font-weight: 600; color: var(--tinta-2);
   cursor: pointer;
-  display: flex; align-items: flex-start; gap: 10px;
+  list-style: none;
 }
-.tarjeta-cuerpo { flex: 1; min-width: 0; }
+.planear summary::-webkit-details-marker { display: none; }
+.planear[open] summary { border-bottom: 1px solid var(--filete); }
+.planear-campos { display: grid; gap: 8px; padding: 13px; }
+.planear .ayuda { padding: 0 13px 12px; margin: 0; }
 
-/* Las visitadas se ven apagadas y con el nombre tachado */
-.tarjeta.visitada { opacity: .55; border-left-color: var(--gris); }
-.tarjeta.visitada h3 { text-decoration: line-through; }
+/* =========================================================================
+   EL TALONARIO: la lista de boletos.
+   Sin tarjetas flotantes: filetes de un píxel y bandas alternas.
+   ========================================================================= */
+.lista { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--filete); }
 
-/* La casilla: cuadro grande para que se pueda tocar con el dedo */
-.visitada-caja {
-  display: grid; place-items: center;
-  width: 40px; min-height: 40px; margin: -4px -6px 0 0;
+.tarjeta { border-bottom: 1px solid var(--filete); }
+.tarjeta:nth-child(even) { background: var(--papel-2); }
+
+.tarjeta-cuerpo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  column-gap: 14px;
+  padding: 11px 16px 10px;
   cursor: pointer;
 }
-.visitada-caja input { width: 20px; height: 20px; accent-color: var(--cafe); cursor: pointer; }
-.tarjeta.abierta { border-left-color: var(--verde); }
-.tarjeta.cierra_pronto { border-left-color: var(--ambar); }
-.tarjeta.cerrada { border-left-color: var(--rojo); }
+.tarjeta-cuerpo:hover { background: color-mix(in srgb, var(--filete) 30%, transparent); }
 
-.tarjeta h3 { margin: 0 0 4px; font-size: 16px; }
-.tarjeta .dir { margin: 0; font-size: 13px; color: var(--suave); }
+.folio {
+  grid-column: 1;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--tinta-3);
+}
+.tarjeta h3 {
+  grid-column: 1;
+  margin: 1px 0 0;
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -.015em;
+}
+.tarjeta .dir {
+  grid-column: 1;
+  margin: 3px 0 0;
+  font-size: 12.5px;
+  color: var(--tinta-2);
+  /* Una sola línea: lo que sirve de una dirección al escanear la lista es el
+     principio (calle y colonia); el código postal y la ciudad son ruido
+     cuando todos tus lugares están en la misma ciudad. La completa sigue
+     estando en el detalle. */
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Los kilómetros son el dato que decide: van enormes, en cifra de boleto. */
+.km {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  align-self: center;
+  text-align: right;
+  line-height: 1;
+}
+.km b {
+  display: block;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 29px;
+  letter-spacing: -.045em;
+}
+.km span {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .16em;
+  color: var(--tinta-2);
+}
+.km:empty { display: none; }
 
 .tarjeta .meta {
-  display: flex; align-items: center; gap: 10px;
-  margin-top: 8px; font-size: 13px; flex-wrap: wrap;
-}
-.estado { font-weight: 600; }
-.estado.abierta { color: var(--verde); }
-.estado.cierra_pronto { color: var(--ambar); }
-.estado.cerrada { color: var(--rojo); }
-.estado.desconocido { color: var(--gris); }
-.km { color: var(--suave); }
-.nota-estrellas { color: var(--ambar); font-weight: 600; }
-.aviso-aprox {
-  background: #fff3d6; color: #8a6100; border: 1px solid #f0dcb8;
-  border-radius: 999px; padding: 1px 8px; font-size: 12px;
-}
-
-.vacio { text-align: center; color: var(--suave); padding: 40px 24px; line-height: 1.6; }
-
-/* ---------- Mapa ---------- */
-#mapa { height: 65vh; width: 100%; }
-.leyenda {
-  display: flex; gap: 14px; flex-wrap: wrap;
-  padding: 10px 16px; font-size: 13px; color: var(--suave);
+  grid-column: 1 / -1;
+  display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  margin-top: 8px;
 }
-.punto { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 4px; }
-.punto.abierta { background: var(--verde); }
-.punto.cierra_pronto { background: var(--ambar); }
-.punto.cerrada { background: var(--rojo); }
-.punto.desconocido { background: var(--gris); }
+.estado { font-size: 12.5px; color: var(--tinta-2); }
+.nota-estrellas {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--tinta);
+}
+/* La estrella es oro; el número, tinta: el número tiene que leerse a 4.5:1. */
+.nota-estrellas i { font-style: normal; color: var(--estrella); }
+.aviso-aprox {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--pronto);
+  border: 1px dashed currentColor;
+  border-radius: 3px;
+  padding: 1px 6px;
+}
 
-/* Marcadores del mapa (los dibujamos con CSS, no con imágenes) */
+/* ---------- EL SELLO: la jugada de la casa ----------
+   Lleva la PALABRA, no solo el color: por eso funciona a pleno sol y para
+   quien no distingue rojo de verde. */
+.sello {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  padding: 3px 7px;
+  border: 2px solid currentColor;
+  border-radius: 4px;
+  color: var(--sin);
+  transform: rotate(-2.5deg);
+  animation: prensar .36s var(--salida) both;
+}
+.sello.abierta { color: var(--abierta); }
+.sello.cierra_pronto { color: var(--pronto); }
+.sello.cerrada { color: var(--cerrada); }
+.sello.desconocido { color: var(--sin); border-style: dashed; }
+
+@keyframes prensar {
+  from { transform: rotate(-5deg) scale(1.12); opacity: 0; }
+  to   { transform: rotate(-2.5deg) scale(1);  opacity: 1; }
+}
+
+/* Lo visitado se imprime desvaído, como un boleto ya usado. */
+.tarjeta.visitada { opacity: .52; }
+.tarjeta.visitada h3 { text-decoration: line-through; text-decoration-thickness: 1px; }
+.tarjeta.visitada .folio::after { content: " · visitado"; }
+
+/* La palomita de "ya fui": cuadro de ponchado al final de la fila. */
+.visitada-caja {
+  margin-left: auto;
+  width: 44px; height: 44px;
+  margin-top: -6px; margin-bottom: -6px;
+  display: grid; place-items: center;
+  cursor: pointer;
+  flex: none;
+}
+.visitada-caja input { position: absolute; opacity: 0; width: 0; height: 0; }
+.visitada-caja::before {
+  content: "";
+  width: 24px; height: 24px;
+  border: 1.5px solid var(--filete);
+  border-radius: 4px;
+}
+.visitada-caja:has(input:checked)::before {
+  border-color: var(--abierta);
+  background: var(--abierta);
+  /* La palomita, dibujada, no tipografiada. */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E");
+  background-size: 17px 17px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.visitada-caja:has(input:focus-visible)::before { outline: 2px solid var(--foco); outline-offset: 2px; }
+
+.vacio {
+  padding: 36px 24px;
+  text-align: center;
+  color: var(--tinta-2);
+  font-size: 14px;
+}
+.vacio[hidden] { display: none; }
+
+/* =========================================================================
+   Mapa
+   ========================================================================= */
+#mapa {
+  height: calc(100dvh - 300px);
+  min-height: 300px;
+  border-top: 1px solid var(--filete);
+  border-bottom: 1px solid var(--filete);
+}
+#mapaSelector {
+  height: 46dvh;
+  min-height: 260px;
+  border: 1.5px solid var(--filete);
+  border-radius: var(--radio);
+}
+
+/* El marcador repite la forma del sello: cuadrito ladeado con tinta de estado. */
 .marcador {
-  width: 18px; height: 18px; border-radius: 50%;
-  border: 3px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.4);
+  width: 18px; height: 18px;
+  border: 3px solid var(--sin);
+  border-radius: 4px;
+  background: var(--papel);
+  transform: rotate(-8deg);
 }
-.marcador.abierta { background: var(--verde); }
-.marcador.cierra_pronto { background: var(--ambar); }
-.marcador.cerrada { background: var(--rojo); }
-.marcador.desconocido { background: var(--gris); }
-.marcador.yo { background: #1a73e8; }
+.marcador.abierta { border-color: var(--abierta); }
+.marcador.cierra_pronto { border-color: var(--pronto); }
+.marcador.cerrada { border-color: var(--cerrada); }
+.marcador.desconocido { border-color: var(--sin); border-style: dashed; }
+.marcador.con-emoji {
+  width: 28px; height: 28px;
+  display: grid; place-items: center;
+  font-size: 14px;
+  line-height: 1;
+}
+.marcador.yo {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  border: 4px solid var(--marca);
+  background: var(--papel);
+  transform: none;
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--marca) 24%, transparent);
+}
 
-/* ---------- Modales ---------- */
-.modal {
-  position: fixed; inset: 0; z-index: 1000;
-  background: rgba(0,0,0,.45);
-  display: flex; align-items: flex-end; justify-content: center;
+.leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  align-items: center;
+  margin: 0;
+  padding: 11px 16px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--tinta-2);
 }
-/* Importante: sin esta línea el atributo hidden no ocultaría el modal,
-   porque la regla display:flex de arriba le gana. */
+.punto {
+  width: 11px; height: 11px;
+  border: 2.5px solid var(--sin);
+  border-radius: 3px;
+  display: inline-block;
+  transform: rotate(-8deg);
+  margin-right: 2px;
+}
+.punto.abierta { border-color: var(--abierta); }
+.punto.cierra_pronto { border-color: var(--pronto); }
+.punto.cerrada { border-color: var(--cerrada); }
+.punto.desconocido { border-color: var(--sin); border-style: dashed; }
+
+/* Los globos de Leaflet también son parte del diseño. */
+.leaflet-popup-content-wrapper {
+  border-radius: var(--radio);
+  background: var(--papel);
+  color: var(--tinta);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .28);
+}
+.leaflet-popup-content { font-family: Archivo, sans-serif; font-size: 13px; margin: 11px 13px; }
+.leaflet-popup-content strong { font-size: 15px; }
+.leaflet-popup-tip { background: var(--papel); }
+.leaflet-container a.leaflet-popup-close-button { color: var(--tinta-2); }
+
+/* =========================================================================
+   La barra de abajo: lo que tocas seguido, al alcance del pulgar
+   ========================================================================= */
+.barra-abajo {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+  background: var(--barra);
+  color: var(--tinta-barra);
+}
+.tabs { display: flex; gap: 2px; padding: 3px; border: 1.5px solid currentColor; border-radius: 999px; }
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  border-radius: 999px;
+  padding: 0 14px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: 700 13px/1 Archivo, sans-serif;
+  letter-spacing: .02em;
+  cursor: pointer;
+}
+.tab.activa { background: var(--tinta-barra); color: var(--barra); }
+
+.acciones { display: flex; gap: 8px; margin-left: auto; }
+.btn-accion {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1.5px solid currentColor;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--tinta-barra);
+  font: 700 13px/1 Archivo, sans-serif;
+  cursor: pointer;
+}
+.btn-accion.fuerte { background: var(--marca); border-color: var(--marca); color: #fff; }
+@media (prefers-color-scheme: dark) {
+  .btn-accion.fuerte, .btn-accion.fuerte.activo { color: #0c0a07; }
+}
+/* Con la ubicación ya concedida, el botón pasa a verde: es un estado vivo,
+   el mismo verde que dice "abierto". */
+.btn-accion.fuerte.activo { background: var(--abierta); border-color: var(--abierta); }
+.btn-accion:active { transform: translateY(1px); }
+/* En pantallas angostas se encogen las PESTAÑAS, no los botones: un ícono de
+   lista o de mapa se entiende solo, "Agregar" y "Ubicación" no. */
+@media (max-width: 400px) {
+  .tab span, .tab { font-size: 0; }
+  .tab { padding: 0 13px; gap: 0; }
+  .tab .ico { font-size: 0; }
+}
+
+/* =========================================================================
+   Modales: hoja que sube desde abajo en celular, caja centrada en pantalla
+   grande. Siguen siendo papel, no vidrio.
+   ========================================================================= */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: var(--velo);
+}
 .modal[hidden] { display: none; }
 .modal-caja {
-  background: var(--crema);
-  width: 100%; max-width: 520px;
-  max-height: 88vh; overflow-y: auto;
-  border-radius: 16px 16px 0 0;
-  padding: 18px 16px 24px;
+  width: 100%;
+  max-width: 560px;
+  max-height: 93dvh;
+  overflow-y: auto;
+  padding: 20px 16px calc(24px + env(safe-area-inset-bottom));
+  background: var(--papel);
+  /* Borde entero, no un filete de un solo lado: abajo queda fuera de pantalla. */
+  border: 3px solid var(--tinta);
+  border-radius: 14px 14px 0 0;
+  animation: subir .22s var(--salida) both;
 }
-@media (min-width: 560px) {
-  .modal { align-items: center; }
-  .modal-caja { border-radius: 16px; }
+@keyframes subir {
+  from { transform: translateY(14px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
 }
-.modal h2 { margin: 0 0 4px; font-size: 18px; }
-.modal h3 { margin: 18px 0 6px; font-size: 15px; }
-.ayuda { font-size: 13px; color: var(--suave); margin: 4px 0 12px; line-height: 1.5; }
-code { background: #efe7de; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
-
-.fila { display: flex; gap: 8px; }
-.fila input { flex: 1; }
-
-.btn {
-  font: inherit; padding: 9px 14px;
-  border: none; border-radius: 8px;
-  background: var(--cafe); color: #fff;
-  cursor: pointer; text-decoration: none; display: inline-block;
+@media (min-width: 620px) {
+  .modal { align-items: center; padding: 24px; }
+  .modal-caja { border-radius: 10px; }
 }
-.btn.secundario { background: var(--tarjeta); color: var(--cafe); border: 1px solid var(--borde); }
-.btn.peligro { background: var(--rojo); }
-.btn[disabled] { opacity: .5; cursor: default; }
-.btn.ancho { width: 100%; margin: 10px 0 4px; }
-
-.enlaces { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
-.enlaces .btn { font-size: 14px; }
-
-.chip {
-  display: inline-block; padding: 4px 10px; border-radius: 999px;
-  background: #efe7de; font-size: 13px; font-weight: 600; margin: 4px 0 0;
+.modal h2 {
+  margin: 0 0 4px;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -.02em;
+  text-wrap: balance;
 }
-
-/* Bloque plegable "Traer desde Google Maps" */
-.bloque-importar {
-  margin-top: 16px; padding-top: 12px;
-  border-top: 1px solid var(--borde);
+.modal h3 {
+  margin: 22px 0 6px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--tinta-2);
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--filete);
 }
-.bloque-importar summary {
-  cursor: pointer; font-weight: 600; font-size: 15px;
-  color: var(--cafe); padding: 4px 0;
+.modal-pie {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px solid var(--filete);
 }
-.bloque-importar textarea {
-  width: 100%; font-size: 13px; font-family: ui-monospace, monospace;
-}
-.bloque-importar .archivo { text-align: center; cursor: pointer; }
-.opcion-import {
-  display: block; margin: 12px 0 4px; cursor: pointer;
-  color: var(--texto); font-size: 14px;
-}
-.opcion-import .ayuda { display: block; margin: 2px 0 0 22px; }
-.opcion-import input { margin-right: 6px; }
-.bloque-importar em { color: var(--texto); font-style: normal; font-weight: 600; }
-
-/* Bloque para pegar el horario copiado de Google Maps */
-.bloque-pegar-horario { margin: 8px 0 12px; }
-.bloque-pegar-horario summary {
-  cursor: pointer; font-size: 14px; font-weight: 600; color: var(--cafe); padding: 4px 0;
-}
-.bloque-pegar-horario textarea { width: 100%; font-size: 13px; }
-
-/* Mapa para poner un punto a mano */
-#mapaSelector {
-  height: 45vh; min-height: 260px; width: 100%;
-  border-radius: 10px; border: 1px solid var(--borde);
-}
-
-.captura-cabecera { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.captura-cabecera .ayuda { margin: 0; }
-
-.pendientes { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
-.pendientes input[type="text"] { width: 100%; margin-top: 6px; font-size: 13px; }
-.pendientes li.resuelta { background: #e8f5ec; border-color: #b8e0c6; color: var(--verde); }
-.acciones-pendiente { display: flex; gap: 10px; align-items: center; margin-top: 4px; flex-wrap: wrap; }
-.btn.chico { padding: 5px 10px; font-size: 13px; }
-.pendientes li {
-  background: #fff6e6; border: 1px solid #f0dcb8;
-  border-radius: 8px; padding: 8px 10px; font-size: 13px;
-}
-.pendientes li.nota-pendientes { background: none; border: none; color: var(--suave); padding: 4px 0; }
-.pendientes strong { display: block; }
-.pendientes a { color: var(--cafe); }
-
-.resultados { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.resultados li {
-  background: var(--tarjeta); border: 1px solid var(--borde);
-  border-radius: 10px; padding: 10px 12px; cursor: pointer;
-}
-.resultados strong { display: block; font-size: 15px; }
-.resultados small { color: var(--suave); }
-
-/* Editor de horario: una fila por día */
-.editor-horario { display: grid; gap: 6px; }
-.dia-fila { display: grid; grid-template-columns: 90px 1fr; align-items: center; gap: 8px; }
-.dia-fila label { font-size: 14px; color: var(--suave); }
-.dia-fila input { width: 100%; }
-
-.campo { display: block; margin-top: 14px; font-size: 14px; color: var(--suave); }
-.campo textarea { width: 100%; margin-top: 4px; }
-
-.modal-pie { display: flex; gap: 8px; align-items: center; margin-top: 20px; }
 .espaciador { flex: 1; }
 
-/* ---------- Mensajito flotante ---------- */
-.toast {
-  position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
-  background: #2a211c; color: #fff;
-  padding: 10px 16px; border-radius: 999px; font-size: 14px;
-  z-index: 2000; max-width: 90vw; text-align: center;
+/* Dos por fila en celular: cuatro botones de ancho completo son 200 px de
+   mobiliario antes de llegar al dato. El texto parte en dos líneas si hace
+   falta, antes que recortarse. */
+.enlaces { display: grid; grid-template-columns: repeat(auto-fit, minmax(146px, 1fr)); gap: 8px; margin: 12px 0; }
+.enlaces .btn { white-space: normal; line-height: 1.15; padding: 8px 10px; text-align: center; }
+.enlaces .ayuda { grid-column: 1 / -1; margin: 0; }
+
+/* El sello dentro del detalle es el mismo componente, un poco más grande,
+   y al lado va el texto largo: el sello no sustituye al dato, lo encabeza. */
+.estado-detalle { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 12px 0 0; }
+#detalleEstado { font-size: 12px; padding: 5px 10px; }
+
+/* En el panel "cerca de ti" la distancia va en línea, no en cifra gigante:
+   ahí lo que manda es el nombre, no la comparación entre distancias. */
+.km-linea {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--tinta-2);
 }
 
-/* ---------- Calificación con estrellas (detalle) ---------- */
-.estrellas { display: flex; align-items: center; flex-wrap: wrap; margin-top: 4px; }
-/* 40x40: más grande que el mínimo de 32px para que sea cómodo con el dedo. */
+.bloque-importar, .bloque-pegar-horario {
+  margin: 14px 0;
+  border: 1.5px solid var(--filete);
+  border-radius: var(--radio);
+  padding: 0 13px;
+}
+.bloque-importar summary, .bloque-pegar-horario summary {
+  margin: 0 -13px;
+  padding: 12px 13px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--tinta);
+  cursor: pointer;
+}
+.bloque-importar[open] summary, .bloque-pegar-horario[open] summary { border-bottom: 1px solid var(--filete); }
+.bloque-importar > *:last-child, .bloque-pegar-horario > *:last-child { margin-bottom: 13px; }
+.bloque-importar em, .bloque-pegar-horario em { font-style: normal; font-weight: 700; }
+.bloque-importar textarea, .bloque-pegar-horario textarea {
+  margin-top: 12px;
+  font-family: var(--mono);
+  font-size: 12.5px;
+}
+.bloque-importar .archivo { margin-top: 12px; }
+
+.opcion-import {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  border-radius: var(--radio);
+  min-height: 44px;
+  padding: 9px 12px;
+  margin: 12px 0;
+  color: var(--tinta);
+}
+.opcion-import .ayuda { flex-basis: 100%; margin: 5px 0 0; }
+.opcion-import:has(input:checked) { background: transparent; border-color: var(--tinta); color: var(--tinta); }
+.opcion-import:has(input:checked) .chip { background: var(--tinta); }
+
+/* Editor de horario, día por día */
+.editor-horario { margin-top: 8px; }
+.dia-fila { display: grid; grid-template-columns: 92px 1fr; gap: 9px; align-items: center; margin-bottom: 7px; }
+.dia-fila label {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--tinta-2);
+}
+.dia-fila input { font-family: var(--mono); font-size: 13px; min-height: 42px; }
+
+/* Calificación */
+.estrellas { display: flex; align-items: center; gap: 2px; margin-top: 6px; flex-wrap: wrap; }
 .estrella {
-  width: 40px; height: 40px; padding: 0;
-  background: none; border: 0; cursor: pointer;
+  width: 42px; height: 42px;
+  padding: 0;
+  background: none; border: 0;
+  cursor: pointer;
   display: grid; place-items: center;
 }
-/* El degradado va en el GLIFO, no en el botón.
-   Medido: el botón mide 40px pero la estrella solo 25px y empieza en el 7.5.
-   Pintando sobre el botón, un 10% caía antes de que la estrella empezara
-   (se veía vacía) y un 90% la rebasaba (se veía llena): el relleno parcial
-   mentía. Con display:inline-block el span se ajusta al ancho del glifo, así
-   que el porcentaje se mide sobre la estrella misma. */
+/* Media estrella = DOS estrellas encimadas: la gris abajo y la dorada encima,
+   recortada al porcentaje. El recorte se mide sobre el GLIFO, no sobre el
+   botón: el botón mide 42px pero la estrella 30 y empieza adentro, así que
+   medirlo sobre el botón haría que un 4.1 se viera vacío y un 4.9 lleno.
+   app.js pone --relleno (0% a 100%) en cada botón y de ahí se hereda. */
 .estrella .glifo {
+  position: relative;
   display: inline-block;
-  font-size: 30px; line-height: 1;
-  /* Degradado duro: ámbar hasta --relleno, gris después, recortado a la
-     forma del texto. --relleno lo pone el JS en el botón y se hereda. */
-  background: linear-gradient(90deg, var(--ambar) var(--relleno, 0%), var(--borde) var(--relleno, 0%));
-  -webkit-background-clip: text; background-clip: text;
-  /* Si un navegador viejo no soporta el recorte, la estrella se ve gris
-     (color de abajo) en vez de invisible. */
-  color: var(--borde);
-  -webkit-text-fill-color: transparent;
+  font-size: 30px;
+  line-height: 1;
+  /* La estrella vacía va en tinta terciaria, no en el color del filete: un
+     control tiene que verse (3:1) aunque esté sin usar. */
+  color: var(--tinta-3);
 }
-/* Deslizador y número, debajo de las estrellas. */
-.ajuste-calificacion { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
-.ajuste-calificacion input[type=range] { flex: 1; min-width: 0; height: 32px; accent-color: var(--ambar); }
-.numero-calificacion { min-width: 5.5em; text-align: right; font-weight: 600; color: var(--ambar); }
-.btn-texto {
-  margin-left: 8px; min-height: 40px; padding: 0 6px;
-  background: none; border: 0; cursor: pointer;
-  font-size: 14px; color: var(--cafe-claro); text-decoration: underline;
+.estrella .glifo::after {
+  content: "★";
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--estrella);
+  clip-path: inset(0 calc(100% - var(--relleno, 0%)) 0 0);
+}
+.ajuste-calificacion { display: flex; align-items: center; gap: 12px; margin-top: 4px; }
+.ajuste-calificacion input[type="range"] { flex: 1; min-width: 0; min-height: 32px; accent-color: var(--estrella); }
+.numero-calificacion {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--tinta-2);
+  min-width: 92px;
+  text-align: right;
+}
+
+/* Listas dentro de modales */
+.resultados, .pendientes, .lista-categorias, .lista-cerca { list-style: none; margin: 12px 0 0; padding: 0; }
+.resultados li, .lista-categorias li, .pendientes li {
+  padding: 11px 0;
+  border-bottom: 1px solid var(--filete);
+}
+.resultados li { display: flex; gap: 10px; align-items: center; justify-content: space-between; }
+.resultados strong { font-size: 15px; font-weight: 700; }
+.resultados small { display: block; color: var(--tinta-2); font-size: 12.5px; }
+.lista-categorias li { display: flex; gap: 9px; align-items: center; flex-wrap: wrap; }
+.lista-categorias strong { font-size: 15px; }
+.lista-categorias .ayuda { margin: 0; flex-basis: 100%; }
+.pendientes li.resuelta { opacity: .5; }
+.pendientes li.nota-pendientes { border: 0; font-size: 13px; color: var(--tinta-2); }
+.pendientes strong { display: block; font-size: 14px; }
+.pendientes a { color: var(--tinta); }
+.pendientes input[type="text"] { margin-top: 7px; font-family: var(--mono); font-size: 12.5px; }
+.acciones-pendiente { display: flex; gap: 7px; margin-top: 8px; flex-wrap: wrap; }
+.campo-emoji { width: 66px; flex: none; text-align: center; font-size: 19px; }
+
+.lista-cerca .tarjeta { border-bottom: 1px solid var(--filete); background: transparent; }
+.lista-cerca .tarjeta-cuerpo { padding: 12px 0; }
+
+.captura-cabecera { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.captura-cabecera .ayuda { margin: 0; font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+
+/* Mensajito flotante */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(86px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 2000;
+  max-width: min(92vw, 420px);
+  padding: 11px 15px;
+  background: var(--tinta);
+  color: var(--papel);
+  border-radius: var(--radio);
+  font-size: 13.5px;
+  font-weight: 600;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .3);
+  animation: subir .22s var(--salida) both;
+}
+.toast[hidden] { display: none; }
+
+/* =========================================================================
+   Pantallas grandes: el talonario no crece a lo ancho sin límite, porque
+   una línea de 120 caracteres no se lee.
+   ========================================================================= */
+@media (min-width: 720px) {
+  /* El talonario se centra en una columna de 760. Las barras siguen yendo de
+     borde a borde (son mobiliario, no contenido), pero su CONTENIDO se alinea
+     con esa columna: por eso el relleno lateral se calcula, en vez de usar un
+     envoltorio extra en el HTML. */
+  .buscador, .filtros, .planear, .lista, .leyenda, #mapa {
+    max-width: 760px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .barra, .barra-categorias, .aviso, .barra-abajo {
+    padding-left: max(16px, calc((100% - 760px) / 2));
+    padding-right: max(16px, calc((100% - 760px) / 2));
+  }
+  .barra-categorias select { flex: 0 1 540px; }
+}
+
+/* Si pediste menos movimiento, la app deja de moverse. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
 }

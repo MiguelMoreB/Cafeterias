@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Si dejaste el modo paseo encendido, avisamos que hay que reactivarlo:
   // el navegador no deja encender el GPS solo, necesita un toque tuyo.
   if (modoPaseoQuedoEncendido()) {
-    mostrarEstadoPaseo('El modo paseo se apagó al cerrar la app. Toca 🔔 para encenderlo otra vez.');
+    mostrarEstadoPaseo('El modo paseo se apagó al cerrar la app. Toca Paseo, arriba, para encenderlo otra vez.');
   }
 
   // Cada minuto repintamos: así "cierra en 35 min" se va actualizando solo.
@@ -160,7 +160,9 @@ function conectarEventos() {
 
 function cambiarVista(vista) {
   document.querySelectorAll('.tab').forEach(t => {
-    t.classList.toggle('activa', t.dataset.vista === vista);
+    const esta = t.dataset.vista === vista;
+    t.classList.toggle('activa', esta);
+    t.setAttribute('aria-selected', String(esta));
   });
   document.getElementById('vistaLista').hidden = vista !== 'lista';
   document.getElementById('vistaMapa').hidden = vista !== 'mapa';
@@ -239,7 +241,9 @@ function renderLista() {
   });
 
   ul.innerHTML = '';
-  for (const item of items) ul.appendChild(crearTarjeta(item));
+  // El folio de cada boleto es su POSICIÓN dentro del orden que elegiste, así
+  // el orden deja de ser invisible; el primero además dice por qué va primero.
+  items.forEach((item, i) => ul.appendChild(crearTarjeta(item, i + 1, orden)));
 
   actualizarContador(items.length, busqueda);
   document.getElementById('btnLimpiarBusqueda').hidden = !busqueda;
@@ -252,8 +256,8 @@ function renderLista() {
     vacio.textContent = `Esta categoría${cat ? ` (${cat.emoji} ${cat.nombre})` : ''} está vacía. ` +
       'Agrega un lugar o cambia de categoría arriba.';
   } else {
-    vacio.innerHTML = 'Todavía no tienes cafeterías.<br>' +
-      'Toca <strong>＋</strong> arriba para buscar la primera.';
+    vacio.innerHTML = 'Todavía no tienes lugares guardados.<br>' +
+      'Toca <strong>Agregar</strong>, abajo, para buscar el primero.';
   }
   if (mapa) pintarMarcadores();
 }
@@ -328,7 +332,7 @@ function actualizarContador(mostradas, busqueda) {
     // Categoría vacía: no es que los filtros no cumplan, es que no hay nada.
     partes.push('Categoría vacía');
   } else if (mostradas === 0) {
-    partes.push(busqueda ? `Ninguno coincide con "${document.getElementById('buscarEnLista').value.trim()}"`
+    partes.push(busqueda ? `Ninguno coincide con «${document.getElementById('buscarEnLista').value.trim()}»`
                          : 'Ninguno cumple los filtros');
   } else if (mostradas < enVista.length) {
     partes.push(`${mostradas} de ${enVista.length}`);
@@ -336,34 +340,87 @@ function actualizarContador(mostradas, busqueda) {
     partes.push(enVista.length === 1 ? '1 lugar' : `${enVista.length} lugares`);
   }
 
-  if (visitadas > 0) partes.push(visitadas === 1 ? '1 visitada' : `${visitadas} visitadas`);
+  if (visitadas > 0) partes.push(visitadas === 1 ? '1 visitado' : `${visitadas} visitados`);
   contador.textContent = partes.join(' · ');
 }
 
-function crearTarjeta({ cafe, estado, km }) {
+/* -------------------------------------------------------------------------
+   EL SELLO.
+
+   La palabra corta que se estampa encima del boleto. Va aparte del texto
+   largo a propósito: el sello se lee de un vistazo caminando, y el texto
+   largo solo si te detienes. Y como el sello lleva la PALABRA y no nada más
+   el color, sirve a pleno sol y para quien no distingue rojo de verde.
+   ------------------------------------------------------------------------- */
+const SELLO = {
+  abierta:       'Abierto',
+  cierra_pronto: 'Cierra pronto',
+  cerrada:       'Cerrado',
+  desconocido:   'Sin horario'
+};
+
+// Lo que queda del texto del estado una vez que el sello ya dijo lo suyo.
+// "Abierta · cierra 20:00" -> "cierra 20:00". Si el texto no empieza con la
+// palabra del sello (pasa con el filtro de horario, que trae el día entero),
+// se muestra completo: más vale repetir que esconder un dato.
+function textoTrasSello(estado) {
+  const t = estado.texto || '';
+  if (estado.estado === 'desconocido') return '';
+  if (t.startsWith('Abierta · ')) return t.slice(10);
+  if (t.startsWith('Cerrada · ')) return t.slice(10);
+  if (estado.estado === 'cierra_pronto' && t.startsWith('Cierra ')) return t.slice(7);
+  return t;
+}
+
+// Por qué el primer boleto va primero. Hace visible el orden elegido.
+const ETIQUETA_PRIMERO = {
+  distancia:         'el más cercano',
+  nombre:            'primero por nombre',
+  estado:            'abierto primero',
+  calificacion_desc: 'tu mejor calificado',
+  calificacion_asc:  'tu peor calificado'
+};
+
+function crearTarjeta({ cafe, estado, km }, folio, orden) {
   const li = document.createElement('li');
   li.className = 'tarjeta ' + estado.estado + (cafe.visitada ? ' visitada' : '');
+
+  const detalle = textoTrasSello(estado);
+  const etiqueta = folio === 1 && !cafe.visitada ? ETIQUETA_PRIMERO[orden] : '';
+
   li.innerHTML = `
     <div class="tarjeta-cuerpo">
+      <span class="folio"></span>
       <h3></h3>
       <p class="dir"></p>
+      <div class="km">${km === null ? '' : `<b></b><span>${km < 1 ? 'M' : 'KM'}</span>`}</div>
       <div class="meta">
-        <span class="estado ${estado.estado}"></span>
-        <span class="km"></span>
-        ${cafe.calificacion > 0 ? `<span class="nota-estrellas" title="Tu calificación">★ ${cafe.calificacion}</span>` : ''}
+        <span class="sello ${estado.estado}"></span>
+        ${detalle ? '<span class="estado"></span>' : ''}
+        ${cafe.calificacion > 0 ? `<span class="nota-estrellas" title="Tu calificación"><i>★</i> ${cafe.calificacion}</span>` : ''}
         ${cafe.aproximada ? '<span class="aviso-aprox">ubicación por confirmar</span>' : ''}
       </div>
     </div>`;
 
   // Usamos textContent (no innerHTML) para el texto que viene de internet:
   // así ningún nombre raro puede meter HTML dentro de la página.
+  li.querySelector('.folio').textContent =
+    String(folio).padStart(2, '0') + (etiqueta ? ' · ' + etiqueta : '');
   li.querySelector('h3').textContent = cafe.nombre;
   li.querySelector('.dir').textContent = cafe.direccion || '';
-  li.querySelector('.estado').textContent = estado.texto;
-  li.querySelector('.km').textContent = km === null ? '' : '· a ' + distanciaATexto(km);
+  li.querySelector('.sello').textContent = SELLO[estado.estado] || 'Sin horario';
+  if (detalle) li.querySelector('.estado').textContent = detalle;
+
+  // La cifra va sola, sin unidad: la unidad es la etiqueta chiquita de abajo.
+  // Así el número puede ir enorme sin que la línea se desborde.
+  if (km !== null) {
+    li.querySelector('.km b').textContent = km < 1 ? Math.round(km * 1000) : km.toFixed(1);
+  }
 
   li.querySelector('.tarjeta-cuerpo').addEventListener('click', () => abrirDetalle(cafe.id));
-  li.appendChild(casillaVisitada(cafe));
+  // La palomita vive DENTRO de la fila de abajo, al final: es el "ponchado"
+  // del boleto y no debe pelear por espacio con los kilómetros.
+  li.querySelector('.meta').appendChild(casillaVisitada(cafe));
   return li;
 }
 
@@ -374,7 +431,7 @@ function crearTarjeta({ cafe, estado, km }) {
 function casillaVisitada(cafe) {
   const etiqueta = document.createElement('label');
   etiqueta.className = 'visitada-caja';
-  etiqueta.title = cafe.visitada ? 'Ya la visitaste' : 'Marcar como visitada';
+  etiqueta.title = cafe.visitada ? 'Ya lo visitaste' : 'Marcar como visitado';
 
   const casilla = document.createElement('input');
   casilla.type = 'checkbox';
@@ -385,7 +442,7 @@ function casillaVisitada(cafe) {
     cafe.visitada = casilla.checked;
     DB.guardar(cafeterias);
     renderLista(); // se reordena sola y se va hasta abajo
-    toast(cafe.visitada ? '✓ Visitada: ' + cafe.nombre : 'Quitada de visitadas');
+    toast(cafe.visitada ? 'Visitado: ' + cafe.nombre : 'Quitado de visitados');
   });
 
   etiqueta.appendChild(casilla);
@@ -476,7 +533,7 @@ function pintarSelectoresDeCategoria() {
   if (lista.length > 1) {
     const todas = document.createElement('option');
     todas.value = TODAS;
-    todas.textContent = `🗂️ Todas (${cafeterias.length})`;
+    todas.textContent = `Todas (${cafeterias.length})`;
     selector.appendChild(todas);
   }
   selector.value = activa;
@@ -721,7 +778,7 @@ function guardarManual() {
 
 /* ======================= 5b. Modo paseo (avisos) ======================== */
 
-// El botón 🔔 abre la pantalla del modo, donde se configura y se enciende.
+// El botón Paseo abre la pantalla del modo, donde se configura y se enciende.
 function abrirModalPaseo() {
   const a = leerAjustes();
   document.getElementById('ajusteRadio').value = String(a.radioKm);
@@ -748,8 +805,8 @@ function pintarEstadoModal() {
   document.getElementById('estadoPaseo').textContent = sinVisitadas === 0
     ? `${estado} · no hay lugares en esta categoría para vigilar`
     : encendido
-      ? `Encendido · vigilando ${sinVisitadas} cafeterías a ${a.radioKm} km`
-      : `Apagado · se vigilarían ${sinVisitadas} de tus ${enCategoria.length} cafeterías`;
+      ? `Encendido · vigilando ${sinVisitadas} lugares a ${a.radioKm} km`
+      : `Apagado · se vigilarían ${sinVisitadas} de tus ${enCategoria.length} lugares`;
 }
 
 // Los ajustes se guardan en cuanto los cambias y aplican de inmediato,
@@ -771,8 +828,8 @@ async function alternarModoPaseo() {
 
   if (modoPaseoActivo()) {
     desactivarModoPaseo();
-    icono.classList.remove('activo');
-    icono.title = 'Modo paseo: avisarme de cafeterías cerca';
+    icono.setAttribute('aria-pressed', 'false');
+    icono.title = 'Modo paseo: avisarme de lugares cerca';
     mostrarEstadoPaseo('Modo paseo apagado.');
     document.getElementById('avisoUbicacion').classList.remove('aviso-tocable');
     pintarEstadoModal();
@@ -781,7 +838,7 @@ async function alternarModoPaseo() {
   }
 
   if (cafeterias.length === 0) {
-    toast('Primero agrega cafeterías a tu lista');
+    toast('Primero agrega lugares a tu lista');
     return;
   }
 
@@ -795,10 +852,10 @@ async function alternarModoPaseo() {
     return;
   }
 
-  icono.classList.add('activo');
+  icono.setAttribute('aria-pressed', 'true');
   icono.title = 'Modo paseo encendido · tócalo para ajustarlo o apagarlo';
   const a = leerAjustes();
-  mostrarEstadoPaseo(`Modo paseo activo · buscando cafeterías abiertas a ${a.radioKm} km...`);
+  mostrarEstadoPaseo(`Modo paseo activo · buscando lugares abiertos a ${a.radioKm} km...`);
   pintarEstadoModal();
   cerrarModales();
   toast('Modo paseo encendido');
@@ -834,7 +891,7 @@ function pedirUbicacion() {
     pos => {
       miUbicacion = { lat: pos.coords.latitude, lon: pos.coords.longitude };
       document.getElementById('btnUbicacion').classList.add('activo');
-      aviso.textContent = 'Ubicación activa · distancias en línea recta desde donde estás.';
+      aviso.textContent = 'Ubicación activa · distancias en línea recta.';
       renderLista();
       if (mapa) pintarMarcadores();
     },
@@ -879,7 +936,7 @@ async function hacerBusqueda() {
 
   try {
     const lugares = await buscarLugares(texto, miUbicacion);
-    pintarResultados(lugares, 'Sin resultados por nombre. Si el lugar está cerca, prueba el botón 📍 de abajo.');
+    pintarResultados(lugares, 'Sin resultados por nombre. Si el lugar está cerca, prueba «Buscar cerca de mí».');
   } catch (e) {
     console.error(e);
     estado.textContent = mensajeDeError(e);
@@ -892,11 +949,11 @@ async function buscarCercaDeMi() {
   const texto = document.getElementById('textoBusqueda').value.trim();
 
   if (!miUbicacion) {
-    estado.textContent = 'Primero toca 📍 en la barra de arriba para darme tu ubicación.';
+    estado.textContent = 'Primero toca «Ubicación», en la barra de abajo, para darme tu ubicación.';
     return;
   }
 
-  estado.textContent = 'Buscando cafeterías a 3 km a la redonda...';
+  estado.textContent = 'Buscando lugares a 3 km a la redonda...';
   document.getElementById('resultados').innerHTML = '';
 
   try {
@@ -914,8 +971,8 @@ async function buscarCercaDeMi() {
       distanciaKm(miUbicacion.lat, miUbicacion.lon, b.lat, b.lon));
 
     pintarResultados(lugares, texto
-      ? 'Ninguna cafetería cercana se llama así. Borra el texto para verlas todas.'
-      : 'OpenStreetMap no tiene cafeterías mapeadas a 3 km de aquí.');
+      ? 'Ningún lugar cercano se llama así. Borra el texto para verlos todos.'
+      : 'OpenStreetMap no tiene lugares mapeados a 3 km de aquí.');
   } catch (e) {
     console.error(e);
     estado.textContent = mensajeDeError(e);
@@ -1037,7 +1094,7 @@ function sanearCalificacion(valor) {
 function construirCafe(datos, horarios) {
   return {
     id: 'c_' + Date.now() + '_' + Math.random().toString(16).slice(2, 6),
-    nombre: datos.nombre || 'Cafetería sin nombre',
+    nombre: datos.nombre || 'Lugar sin nombre',
     direccion: datos.direccion || '',
     lat: datos.lat,
     lon: datos.lon,
@@ -1299,7 +1356,7 @@ async function procesarImportacion(filas) {
   mostrarPendientes(noEncontradas, cortos);
   if (agregadas > 0) {
     document.getElementById('textoPegado').value = '';
-    toast(`Importadas ${agregadas} cafeterías`);
+    toast(`Importados ${agregadas} lugares`);
   }
 }
 
@@ -1524,7 +1581,7 @@ function resolverPendiente(li, fila, punto) {
   const lugar = Object.assign({}, fila, punto);
   if (yaExiste(lugar)) {
     li.className = 'resuelta';
-    li.textContent = (fila.nombre || 'Esa cafetería') + ' — ya la tenías';
+    li.textContent = (fila.nombre || 'Ese lugar') + ' — ya la tenías';
     return;
   }
 
@@ -1533,7 +1590,7 @@ function resolverPendiente(li, fila, punto) {
   renderLista();
 
   li.className = 'resuelta';
-  li.textContent = '✓ ' + (fila.nombre || 'Agregada') + ' — agregada, captúrale el horario';
+  li.textContent = (fila.nombre || 'Agregado') + ' — agregado, captúrale el horario';
 }
 
 /* -------------------------------------------------------------------------
@@ -1548,7 +1605,7 @@ function resolverPendiente(li, fila, punto) {
 async function intentarCruzarConOSM(filas, boton) {
   const centro = await centroParaBuscar();
   if (!centro) {
-    estadoImport('Escribe arriba la ciudad de tus cafeterías (o activa tu ubicación 📍) para poder buscarlas.');
+    estadoImport('Escribe arriba la ciudad de tus lugares, o activa tu ubicación, para poder buscarlos.');
     return;
   }
 
@@ -1767,8 +1824,11 @@ function abrirDetalle(id) {
   document.getElementById('detalleNombre').textContent = cafe.nombre;
   document.getElementById('detalleDireccion').textContent =
     (cafe.direccion || '') + (km === null ? '' : ' · a ' + distanciaATexto(km)) +
-    (cafe.aproximada ? ' · ⚠ ubicación adivinada por el buscador: confírmala con "Corregir ubicación"' : '');
-  document.getElementById('detalleEstado').textContent = estado.texto;
+    (cafe.aproximada ? ' · ubicación adivinada por el buscador: confírmala con "Corregir ubicación"' : '');
+  const selloDetalle = document.getElementById('detalleEstado');
+  selloDetalle.className = 'sello ' + estado.estado;
+  selloDetalle.textContent = SELLO[estado.estado] || 'Sin horario';
+  document.getElementById('detalleEstadoTexto').textContent = textoTrasSello(estado);
   document.getElementById('detalleNotas').value = cafe.notas || '';
   document.getElementById('detalleComoLlegar').href = linkComoLlegar(cafe);
   document.getElementById('detalleVerMapa').href = linkGoogleMaps(cafe);
@@ -1824,8 +1884,8 @@ function pintarEstrellas(valor) {
   caja.dataset.valor = String(valor);
   caja.querySelectorAll('.estrella').forEach(btn => {
     const n = Number(btn.dataset.valor);
-    // Cuánto de ESTA estrella se llena: 0 a 100%. El CSS lo usa para pintar
-    // un degradado recortado a la forma de la estrella.
+    // Cuánto de ESTA estrella se llena: 0 a 100%. El CSS encima una estrella
+    // dorada sobre la gris y la recorta a ese porcentaje.
     const relleno = Math.round(Math.min(1, Math.max(0, valor - (n - 1))) * 100);
     btn.style.setProperty('--relleno', relleno + '%');
     btn.classList.toggle('marcada', relleno > 0);
@@ -2003,5 +2063,5 @@ function importarLista(texto) {
   cafeterias = datos;
   DB.guardar(cafeterias);
   renderLista();
-  toast('Lista importada: ' + datos.length + ' cafeterías');
+  toast('Lista importada: ' + datos.length + ' lugares');
 }

@@ -198,7 +198,7 @@ function filasDesdeKML(texto) {
     // la dirección viene en <description>. La usamos como dirección para que se
     // vea en la tarjeta, que es donde sirve.
     filas.push({
-      nombre: nombre || 'Cafetería sin nombre',
+      nombre: nombre || 'Lugar sin nombre',
       url: '',
       direccion: textoDeEtiqueta(marca, 'description'),
       lat,
@@ -280,7 +280,7 @@ function filasDesdeJSON(texto) {
     const url = props['Google Maps URL'] || props.url || props.google_maps_url || '';
 
     if (isFinite(lat) && isFinite(lon)) {
-      filas.push({ nombre: nombre || nombreDesdeTexto(url) || 'Cafetería sin nombre', url, nota: loc.address || '', lat, lon });
+      filas.push({ nombre: nombre || nombreDesdeTexto(url) || 'Lugar sin nombre', url, nota: loc.address || '', lat, lon });
     } else if (nombre || url) {
       filas.push({ nombre: nombre || nombreDesdeTexto(url), url, nota: '' });
     }

@@ -279,8 +279,8 @@ async function revisarCercanas() {
 
 async function notificar(lista) {
   const titulo = lista.length === 1
-    ? '☕ ' + lista[0].cafe.nombre + ' está abierta'
-    : `☕ ${lista.length} cafeterías abiertas cerca de ti`;
+    ? lista[0].cafe.nombre + ' está abierto'
+    : `${lista.length} lugares abiertos cerca de ti`;
 
   const cuerpo = lista.slice(0, 4)
     .map(x => `${x.cafe.nombre} · ${distanciaATexto(x.km)} · ${x.estado.texto}`)
@@ -314,8 +314,8 @@ function avisarDentroDeLaApp(lista) {
   if (!aviso) return;
 
   aviso.textContent = lista.length === 1
-    ? `☕ ${lista[0].cafe.nombre} está abierta a ${distanciaATexto(lista[0].km)} · toca para ver`
-    : `☕ ${lista.length} cafeterías abiertas cerca · toca para ver`;
+    ? `${lista[0].cafe.nombre} está abierto a ${distanciaATexto(lista[0].km)} · toca para ver`
+    : `${lista.length} lugares abiertos cerca · toca para ver`;
   aviso.classList.add('aviso-tocable');
   toast(aviso.textContent);
 }
@@ -335,9 +335,9 @@ function pintarPanelCerca() {
   const ajustes = leerAjustes();
   const ayuda = document.getElementById('ayudaCerca');
   if (ayuda) {
-    ayuda.textContent = `A menos de ${ajustes.radioKm} km de donde estás y abiertas ahora` +
+    ayuda.textContent = `A menos de ${ajustes.radioKm} km de donde estás y abiertos ahora` +
       (ajustes.margenCierreMin > 0 ? `, con al menos ${ajustes.margenCierreMin} min antes de cerrar` : '') +
-      (ajustes.soloNoVisitadas ? ', sin contar las visitadas' : '') + '.';
+      (ajustes.soloNoVisitadas ? ', sin contar los visitados' : '') + '.';
   }
 
   // Si el modo no está corriendo, calculamos con la última ubicación conocida.
@@ -347,8 +347,8 @@ function pintarPanelCerca() {
     const vacio = document.createElement('li');
     vacio.className = 'nota-pendientes';
     vacio.textContent = miUbicacion
-      ? `Ninguna cafetería abierta a menos de ${leerAjustes().radioKm} km de ti.`
-      : 'Todavía no sé dónde estás. Toca 📍 arriba para darme tu ubicación.';
+      ? `Ningún lugar abierto a menos de ${leerAjustes().radioKm} km de ti.`
+      : 'Todavía no sé dónde estás. Toca «Ubicación», abajo, para darme tu ubicación.';
     ul.appendChild(vacio);
     return;
   }
@@ -367,15 +367,21 @@ function pintarPanelCerca() {
     dir.className = 'dir';
     dir.textContent = x.cafe.direccion || '';
 
+    // Mismo sello que en la lista principal: una sola forma para un solo dato.
+    // SELLO y textoTrasSello viven en app.js, que se carga después que este
+    // archivo; para cuando esta función se ejecuta ya existen.
     const meta = document.createElement('div');
     meta.className = 'meta';
+    const sello = document.createElement('span');
+    sello.className = 'sello ' + x.estado.estado;
+    sello.textContent = SELLO[x.estado.estado] || 'Sin horario';
     const estado = document.createElement('span');
-    estado.className = 'estado ' + x.estado.estado;
-    estado.textContent = x.estado.texto;
+    estado.className = 'estado';
+    estado.textContent = textoTrasSello(x.estado);
     const km = document.createElement('span');
-    km.className = 'km';
-    km.textContent = '· a ' + distanciaATexto(x.km);
-    meta.append(estado, km);
+    km.className = 'km-linea';
+    km.textContent = 'a ' + distanciaATexto(x.km);
+    meta.append(sello, estado, km);
 
     const espera = minutosDeEspera(x.cafe.id);
     if (espera > 0) {

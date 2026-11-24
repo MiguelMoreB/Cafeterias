@@ -2,73 +2,119 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <!-- viewport-fit + maximum-scale: se ve bien en celular y no hace zoom raro -->
+  <!-- viewport-fit: la app llega hasta el borde en celulares con muesca.
+       Las barras usan env(safe-area-inset-*) para no quedar debajo. -->
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#4b2e1e">
-  <title>Cafeterías</title>
+  <!-- La barra del navegador va en tinta en los dos temas, igual que la
+       cabecera de la app, para que no se vea un escalón de color. -->
+  <meta name="theme-color" content="#17120C">
+  <title>Mis Lugares</title>
 
   <!-- Leaflet: la librería del mapa. Es gratis y no pide API key.
        Se carga desde un CDN (un servidor público), por eso la primera vez
-       necesitas internet. -->
+       necesitas internet. Las tipografías NO: esas viven en assets/fonts
+       para que la app abra igual sin señal. -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
   <link rel="stylesheet" href="styles.css">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icono.svg">
+  <link rel="apple-touch-icon" href="icono.svg">
 </head>
 <body>
 
-  <header class="barra">
-    <h1>☕ Cafeterías</h1>
-    <div class="acciones">
-      <button id="btnPaseo" class="btn-icono" title="Modo paseo: avisarme de cafeterías cerca">🔔</button>
-      <button id="btnUbicacion" class="btn-icono" title="Usar mi ubicación">📍</button>
-      <button id="btnAgregar" class="btn-icono" title="Agregar cafetería">＋</button>
-    </div>
-  </header>
+<!-- =========================================================================
+     Los íconos de la interfaz, dibujados a trazo 1.75 en rejilla de 24.
+     Están aquí una sola vez y se reusan con <use href="#i-...">; así todos
+     comparten grosor y tamaño. Los emojis que verás en la app son los que TÚ
+     escribes para tus categorías: eso es un dato tuyo, no iconografía.
+     ========================================================================= -->
+<svg class="sprite" aria-hidden="true" focusable="false">
+  <symbol id="i-pin" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.5s-6.5-6.2-6.5-11.5a6.5 6.5 0 0 1 13 0c0 5.3-6.5 11.5-6.5 11.5z"/><circle cx="12" cy="10" r="2.5"/></g></symbol>
+  <symbol id="i-diana" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.25"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></g></symbol>
+  <symbol id="i-campana" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0 1 12 0c0 4.2 1.3 5.6 2 6.3.3.3.1.7-.3.7H4.3c-.4 0-.6-.4-.3-.7.7-.7 2-2.1 2-6.3z"/><path d="M9.5 19a2.6 2.6 0 0 0 5 0"/></g></symbol>
+  <symbol id="i-mas" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></g></symbol>
+  <symbol id="i-lupa" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.75" cy="10.75" r="6.25"/><path d="M15.4 15.4L20 20"/></g></symbol>
+  <symbol id="i-equis" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></g></symbol>
+  <symbol id="i-lista" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/></g></symbol>
+  <symbol id="i-mapa" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4.5L3.5 6.8v12.7L9 17.2M9 4.5l6 2.3M9 4.5v12.7M15 6.8l5.5-2.3v12.7L15 19.5M15 6.8v12.7M9 17.2l6 2.3"/></g></symbol>
+  <symbol id="i-etiqueta" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M11.3 3.5H19a1.5 1.5 0 0 1 1.5 1.5v7.7a1.5 1.5 0 0 1-.44 1.06l-6.3 6.3a1.5 1.5 0 0 1-2.12 0l-7.66-7.66a1.5 1.5 0 0 1 0-2.12l6.3-6.3a1.5 1.5 0 0 1 1.06-.44z"/><circle cx="16" cy="8" r="1.4"/></g></symbol>
+  <symbol id="i-calendario" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5.5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3.5v4M16 3.5v4"/></g></symbol>
+  <symbol id="i-reloj" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.2V12l3.2 2"/></g></symbol>
+  <symbol id="i-lapiz" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16.1 3.9l4 4L8.6 19.4l-5 1 1-5z"/><path d="M14.1 5.9l4 4"/></g></symbol>
+  <symbol id="i-archivo" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v11M8.2 10.7L12 14.5l3.8-3.8"/><path d="M4.5 16v2.5a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V16"/></g></symbol>
+  <symbol id="i-basura" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 6.5h15M9.5 6.5V4.8a1.3 1.3 0 0 1 1.3-1.3h2.4a1.3 1.3 0 0 1 1.3 1.3v1.7"/><path d="M6.5 6.5l.9 12.2a1.8 1.8 0 0 0 1.8 1.8h5.6a1.8 1.8 0 0 0 1.8-1.8l.9-12.2"/><path d="M10.4 10.5v6M13.6 10.5v6"/></g></symbol>
+  <symbol id="i-ruta" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 3.5L10.8 13.2"/><path d="M20.5 3.5l-6.6 17-3.1-7.3-7.3-3.1z"/></g></symbol>
+  <symbol id="i-globo" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17"/><path d="M12 3.5c2.3 2.5 3.4 5.4 3.4 8.5S14.3 18 12 20.5C9.7 18 8.6 15.1 8.6 12S9.7 6 12 3.5z"/></g></symbol>
+  <symbol id="i-estrella" viewBox="0 0 24 24"><path d="M12 3.3l2.72 5.52 6.09.89-4.4 4.29 1.04 6.06L12 17.2l-5.45 2.86 1.04-6.06-4.4-4.29 6.09-.89z" fill="currentColor"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></g></symbol>
+  <symbol id="i-logo" viewBox="0 0 512 512"><g transform="rotate(-11 256 256)"><rect x="96" y="150" width="320" height="212" rx="26" fill="none" stroke="currentColor" stroke-width="34"/><path d="M256 394s-58-62-58-116a58 58 0 1 1 116 0c0 54-58 116-58 116z" fill="currentColor" stroke="var(--tinta-barra)" stroke-width="30" paint-order="stroke"/><circle cx="256" cy="248" r="24" fill="var(--tinta-barra)"/></g></symbol>
+</svg>
 
-  <!-- Estado de la ubicación: se llena desde app.js -->
-  <p id="avisoUbicacion" class="aviso"></p>
+  <!-- ===================== La cabeza del talonario ===================== -->
+  <header class="barra">
+    <div class="marca">
+      <svg class="ico-logo" aria-hidden="true"><use href="#i-logo"></use></svg>
+      <h1>Mis Lugares</h1>
+    </div>
+
+    <!-- El modo paseo es un estado, no una acción suelta: por eso es una
+         cápsula con su chip, que cruza al encenderse. -->
+    <button id="btnPaseo" class="capsula" aria-pressed="false"
+            title="Modo paseo: avisarme de lugares cerca">
+      <span class="chip"></span>
+      <span class="capsula-texto">Paseo</span>
+    </button>
+  </header>
 
   <!-- Qué categoría estás viendo. Afecta a la lista Y al mapa. -->
   <div class="barra-categorias">
     <select id="categoriaActiva" title="Categoría que estás viendo"></select>
-    <button id="btnCategorias" class="btn secundario chico">Administrar</button>
+    <button id="btnCategorias" class="btn secundario chico">
+      <svg class="ico" aria-hidden="true"><use href="#i-etiqueta"></use></svg>
+      Categorías
+    </button>
   </div>
 
-  <!-- Pestañas: Lista / Mapa -->
-  <nav class="tabs">
-    <button class="tab activa" data-vista="lista">Lista</button>
-    <button class="tab" data-vista="mapa">Mapa</button>
-  </nav>
+  <!-- Estado de la ubicación: se llena desde app.js -->
+  <p id="avisoUbicacion" class="aviso"></p>
 
   <main>
     <!-- ---------- VISTA LISTA ---------- -->
     <section id="vistaLista">
       <div class="buscador">
-        <input type="search" id="buscarEnLista" placeholder="🔍 Buscar por nombre, colonia o calle" autocomplete="off">
-        <button id="btnLimpiarBusqueda" class="btn-limpiar" hidden title="Limpiar">✕</button>
+        <svg class="ico lupa" aria-hidden="true"><use href="#i-lupa"></use></svg>
+        <input type="search" id="buscarEnLista" placeholder="Buscar por nombre, colonia o calle" autocomplete="off">
+        <button id="btnLimpiarBusqueda" class="btn-limpiar" hidden title="Limpiar búsqueda">
+          <svg class="ico" aria-hidden="true"><use href="#i-equis"></use></svg>
+        </button>
       </div>
 
       <div class="filtros">
         <label class="filtro">
-          <input type="checkbox" id="soloAbiertas"> Solo abiertas ahora
+          <input type="checkbox" id="soloAbiertas">
+          <span class="chip"></span>Abiertos ahora
         </label>
         <label class="filtro">
-          <input type="checkbox" id="ocultarVisitadas"> Ocultar visitadas
+          <input type="checkbox" id="ocultarVisitadas">
+          <span class="chip"></span>Ocultar visitados
         </label>
-        <select id="ordenar">
-          <option value="distancia">Ordenar: más cercanas</option>
-          <option value="nombre">Ordenar: por nombre</option>
-          <option value="estado">Ordenar: abiertas primero</option>
-          <option value="calificacion_desc">Ordenar: mejor calificadas</option>
-          <option value="calificacion_asc">Ordenar: peor calificadas</option>
+        <select id="ordenar" title="Cómo ordenar la lista">
+          <option value="distancia">Más cercanos</option>
+          <option value="nombre">Por nombre</option>
+          <option value="estado">Abiertos primero</option>
+          <option value="calificacion_desc">Mejor calificados</option>
+          <option value="calificacion_asc">Peor calificados</option>
         </select>
+        <p id="contador" class="contador"></p>
       </div>
 
       <!-- Buscar por horario, para planear otro día -->
       <details class="planear">
-        <summary>🗓️ Buscar por horario (para otro día)</summary>
+        <summary>
+          <svg class="ico" aria-hidden="true"><use href="#i-calendario"></use></svg>
+          Buscar por horario (para otro día)
+        </summary>
         <div class="planear-campos">
           <select id="planDia">
             <option value="">— sin filtro de horario —</option>
@@ -83,7 +129,7 @@
           </select>
 
           <select id="planModo">
-            <option value="abierta">que estén abiertas a las</option>
+            <option value="abierta">que estén abiertos a las</option>
             <option value="abre_antes">que abran a esa hora o antes</option>
             <option value="cierra_despues">que cierren a esa hora o después</option>
           </select>
@@ -91,18 +137,16 @@
           <input type="time" id="planHora" value="09:00">
         </div>
         <p class="ayuda">
-          Ejemplo: <em>Sábado · que abran a esa hora o antes · 08:00</em> te deja las
-          que ya están abiertas a esa hora el sábado.
+          Ejemplo: <em>Sábado · que abran a esa hora o antes · 08:00</em> te deja los
+          que ya están abiertos a esa hora el sábado.
         </p>
       </details>
-
-      <p id="contador" class="contador"></p>
 
       <ul id="lista" class="lista"></ul>
 
       <p id="vacio" class="vacio">
-        Todavía no tienes cafeterías.<br>
-        Toca <strong>＋</strong> arriba para buscar la primera.
+        Todavía no tienes lugares guardados.<br>
+        Toca <strong>Agregar</strong>, abajo, para buscar el primero.
       </p>
     </section>
 
@@ -110,21 +154,45 @@
     <section id="vistaMapa" hidden>
       <div id="mapa"></div>
       <p class="leyenda">
-        <span class="punto abierta"></span> Abierta
+        <span class="punto abierta"></span> Abierto
         <span class="punto cierra_pronto"></span> Cierra pronto
-        <span class="punto cerrada"></span> Cerrada
+        <span class="punto cerrada"></span> Cerrado
         <span class="punto desconocido"></span> Sin horario
       </p>
     </section>
   </main>
 
-  <!-- ================== MODAL: AGREGAR CAFETERÍA ================== -->
+  <!-- ============ La barra de abajo: todo lo que tocas seguido ============
+       Va abajo a propósito: la app se usa caminando, con una mano, y el
+       pulgar no llega cómodo a la esquina de arriba. -->
+  <nav class="barra-abajo">
+    <div class="tabs" role="tablist">
+      <button class="tab activa" data-vista="lista" role="tab" aria-selected="true">
+        <svg class="ico" aria-hidden="true"><use href="#i-lista"></use></svg>Lista
+      </button>
+      <button class="tab" data-vista="mapa" role="tab" aria-selected="false">
+        <svg class="ico" aria-hidden="true"><use href="#i-mapa"></use></svg>Mapa
+      </button>
+    </div>
+    <div class="acciones">
+      <button id="btnAgregar" class="btn-accion" title="Agregar un lugar">
+        <svg class="ico" aria-hidden="true"><use href="#i-mas"></use></svg>
+        <span>Agregar</span>
+      </button>
+      <button id="btnUbicacion" class="btn-accion fuerte" title="Usar mi ubicación">
+        <svg class="ico" aria-hidden="true"><use href="#i-diana"></use></svg>
+        <span>Ubicación</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ================== MODAL: AGREGAR LUGAR ================== -->
   <div id="modalAgregar" class="modal" hidden>
     <div class="modal-caja">
-      <h2>Agregar cafetería</h2>
+      <h2>Agregar un lugar</h2>
       <p class="ayuda">
-        Lo que mejor funciona: activa tu ubicación 📍 y usa
-        <strong>Cafeterías cerca de mí</strong>. La búsqueda por nombre sirve
+        Lo que mejor funciona: activa tu ubicación y usa
+        <strong>Buscar cerca de mí</strong>. La búsqueda por nombre sirve
         para lugares de otras ciudades.
       </p>
 
@@ -133,11 +201,17 @@
         <button type="submit" class="btn">Buscar</button>
       </form>
 
-      <button id="btnCerca" class="btn secundario ancho">📍 Cafeterías cerca de mí</button>
+      <button id="btnCerca" class="btn secundario ancho">
+        <svg class="ico" aria-hidden="true"><use href="#i-diana"></use></svg>
+        Buscar cerca de mí
+      </button>
 
-      <button id="btnAbrirManual" class="btn secundario ancho">✍️ Escribir los datos a mano</button>
+      <button id="btnAbrirManual" class="btn secundario ancho">
+        <svg class="ico" aria-hidden="true"><use href="#i-lapiz"></use></svg>
+        Escribir los datos a mano
+      </button>
 
-      <!-- Tercera vía: traerlas de Google Maps, que sí las tiene todas -->
+      <!-- Tercera vía: traerlos de Google Maps, que sí los tiene todos -->
       <details class="bloque-importar">
         <summary>Traer desde Google Maps</summary>
 
@@ -153,11 +227,11 @@
         <button id="btnPegar" class="btn ancho">Agregar lo pegado</button>
 
         <label class="campo">
-          Ciudad de tus cafeterías
+          Ciudad de tus lugares
           <input type="text" id="ciudadImport" placeholder="Ej. Monterrey, Nuevo León" autocomplete="off">
           <span class="ayuda">
             Las listas de Google casi nunca traen coordenadas: solo el nombre. Con la
-            ciudad, la app puede encontrarlas por nombre. Sin ella, casi ninguna.
+            ciudad, la app puede encontrarlos por nombre. Sin ella, casi ninguno.
           </span>
         </label>
 
@@ -170,14 +244,16 @@
 
         <label class="filtro opcion-import">
           <input type="checkbox" id="actualizarHorarios">
-          Completar horarios de las que ya tengo
+          <span class="chip"></span>
+          Completar horarios de los que ya tengo
           <span class="ayuda">
-            Solo cambia una cafetería si el archivo trae MÁS días que lo que ya
+            Solo cambia un lugar si el archivo trae MÁS días que lo que ya
             tienes guardado. Lo que capturaste completo a mano no se toca.
           </span>
         </label>
 
         <label class="btn secundario ancho archivo">
+          <svg class="ico" aria-hidden="true"><use href="#i-archivo"></use></svg>
           Importar archivo (CSV, KML, KMZ o JSON)
           <!-- Sin filtro de tipo a propósito: así el selector nunca te bloquea
                un archivo, y la app decide por su contenido qué es. -->
@@ -200,15 +276,26 @@
   <!-- ================== MODAL: DETALLE / EDITAR ================== -->
   <div id="modalDetalle" class="modal" hidden>
     <div class="modal-caja">
-      <h2 id="detalleNombre">Cafetería</h2>
+      <h2 id="detalleNombre">Lugar</h2>
       <p id="detalleDireccion" class="ayuda"></p>
-      <p id="detalleEstado" class="chip"></p>
+      <p class="estado-detalle">
+        <span id="detalleEstado" class="sello"></span>
+        <span id="detalleEstadoTexto" class="estado"></span>
+      </p>
 
       <div class="enlaces">
-        <a id="detalleComoLlegar" class="btn secundario" target="_blank" rel="noopener">Cómo llegar</a>
-        <a id="detalleVerMapa" class="btn secundario" target="_blank" rel="noopener">Ver en Google Maps</a>
-        <button id="btnAjustarUbicacion" class="btn secundario">Corregir ubicación</button>
-        <button id="btnActualizarOSM" class="btn secundario">Buscar horario en OSM</button>
+        <a id="detalleComoLlegar" class="btn secundario" target="_blank" rel="noopener">
+          <svg class="ico" aria-hidden="true"><use href="#i-ruta"></use></svg>Cómo llegar
+        </a>
+        <a id="detalleVerMapa" class="btn secundario" target="_blank" rel="noopener">
+          <svg class="ico" aria-hidden="true"><use href="#i-globo"></use></svg>Ver en Google Maps
+        </a>
+        <button id="btnAjustarUbicacion" class="btn secundario">
+          <svg class="ico" aria-hidden="true"><use href="#i-pin"></use></svg>Corregir ubicación
+        </button>
+        <button id="btnActualizarOSM" class="btn secundario">
+          <svg class="ico" aria-hidden="true"><use href="#i-reloj"></use></svg>Buscar horario en OSM
+        </button>
       </div>
 
       <label class="campo">
@@ -219,7 +306,7 @@
       <!-- Calificación: cada estrella es un botón grande para el dedo. No se
            guarda al tocarla, sino al dar Guardar (así Cancelar sí cancela). -->
       <div class="campo">
-        Calificación
+        Tu calificación
         <div id="detalleEstrellas" class="estrellas" data-valor="0" role="group" aria-label="Calificación de 1 a 5 estrellas">
           <button type="button" class="estrella" data-valor="1" aria-label="1 estrella"><span class="glifo">★</span></button>
           <button type="button" class="estrella" data-valor="2" aria-label="2 estrellas"><span class="glifo">★</span></button>
@@ -241,7 +328,7 @@
       <details class="bloque-pegar-horario">
         <summary>Pegar el horario de Google Maps</summary>
         <p class="ayuda">
-          Abre la cafetería en Google Maps, toca los horarios para desplegar la
+          Abre el lugar en Google Maps, toca los horarios para desplegar la
           semana completa, selecciónala y cópiala. Pégala aquí y dale
           <em>Interpretar</em>: llena los 7 días solo.
         </p>
@@ -263,7 +350,9 @@
       </label>
 
       <div class="modal-pie">
-        <button id="btnEliminar" class="btn peligro">Eliminar</button>
+        <button id="btnEliminar" class="btn peligro">
+          <svg class="ico" aria-hidden="true"><use href="#i-basura"></use></svg>Eliminar
+        </button>
         <span class="espaciador"></span>
         <button class="btn secundario" data-cerrar>Cancelar</button>
         <button id="btnGuardar" class="btn">Guardar</button>
@@ -274,7 +363,7 @@
   <!-- ============ MODAL: AGREGAR A MANO ============ -->
   <div id="modalManual" class="modal" hidden>
     <div class="modal-caja">
-      <h2>✍️ Agregar a mano</h2>
+      <h2>Agregar a mano</h2>
       <p class="ayuda">
         Para lugares que no están en ningún buscador, o cuando quieres poner
         tus propios datos.
@@ -298,7 +387,9 @@
       <div class="campo">
         Ubicación
         <div class="enlaces">
-          <button id="manualEnMapa" class="btn secundario">Ponerla en el mapa</button>
+          <button id="manualEnMapa" class="btn secundario">
+            <svg class="ico" aria-hidden="true"><use href="#i-pin"></use></svg>Ponerla en el mapa
+          </button>
           <span id="manualUbicacion" class="ayuda">Sin ubicación todavía</span>
         </div>
         <input type="text" id="manualLink" placeholder="…o pega aquí su link de Google Maps" autocomplete="off">
@@ -326,7 +417,7 @@
   <!-- ============ MODAL: ADMINISTRAR CATEGORÍAS ============ -->
   <div id="modalCategorias" class="modal" hidden>
     <div class="modal-caja">
-      <h2>🏷️ Categorías</h2>
+      <h2>Categorías</h2>
       <p class="ayuda">
         Sirven para que no se te mezclen en la lista ni en el mapa: cafeterías,
         bares, comida japonesa, lo que quieras.
@@ -351,15 +442,15 @@
   <!-- ============ MODAL: MODO PASEO Y SUS AJUSTES ============ -->
   <div id="modalPaseo" class="modal" hidden>
     <div class="modal-caja">
-      <h2>🔔 Modo paseo</h2>
+      <h2>Modo paseo</h2>
       <p class="ayuda">
         Mientras esté encendido y la app abierta, te aviso cuando pases cerca
-        de una cafetería abierta. <strong>Mantiene la pantalla encendida</strong>:
+        de un lugar abierto. <strong>Mantiene la pantalla encendida</strong>:
         si el teléfono se duerme, el navegador deja de leer el GPS.
       </p>
 
       <label class="campo">
-        Avisarme de las que estén a menos de
+        Avisarme de los que estén a menos de
         <select id="ajusteRadio">
           <option value="0.5">500 metros (a pie)</option>
           <option value="0.8">800 metros</option>
@@ -370,7 +461,7 @@
       </label>
 
       <label class="campo">
-        No repetir el aviso de una misma cafetería durante
+        No repetir el aviso de un mismo lugar durante
         <select id="ajusteEspera">
           <option value="30">30 minutos</option>
           <option value="60">1 hora</option>
@@ -391,9 +482,10 @@
 
       <label class="filtro opcion-import">
         <input type="checkbox" id="ajusteNoVisitadas">
-        Solo avisarme de las que no he visitado
+        <span class="chip"></span>
+        Solo avisarme de los que no he visitado
         <span class="ayuda">
-          Usa la palomita de la lista: las que ya marcaste dejan de avisar.
+          Usa la palomita de la lista: los que ya marcaste dejan de avisar.
         </span>
       </label>
 
@@ -407,13 +499,13 @@
     </div>
   </div>
 
-  <!-- ============ MODAL: CAFETERÍAS CERCA DE TI ============ -->
+  <!-- ============ MODAL: LUGARES CERCA DE TI ============ -->
   <!-- Es lo que se abre al tocar la notificación del modo paseo -->
   <div id="modalCerca" class="modal" hidden>
     <div class="modal-caja">
-      <h2>☕ Abiertas cerca de ti</h2>
+      <h2>Abiertos cerca de ti</h2>
       <p class="ayuda" id="ayudaCerca">
-        A menos de 2 km de donde estás, y abiertas en este momento.
+        A menos de 2 km de donde estás, y abiertos en este momento.
       </p>
       <ul id="listaCerca" class="lista-cerca"></ul>
       <div class="modal-pie">
@@ -429,10 +521,10 @@
         <p class="ayuda" id="capturaProgreso"></p>
         <button id="capturaSalir" class="btn secundario chico">Salir</button>
       </div>
-      <h2 id="capturaTitulo">Cafetería</h2>
+      <h2 id="capturaTitulo">Lugar</h2>
 
       <a id="capturaAbrir" class="btn ancho" target="_blank" rel="noopener">
-        1 · Abrirla en Google Maps
+        1 · Abrirlo en Google Maps
       </a>
 
       <label class="campo">
@@ -448,7 +540,7 @@
       <p id="capturaAviso" class="ayuda"></p>
 
       <div class="modal-pie">
-        <button id="capturaMapa" class="btn secundario">Ponerla en el mapa</button>
+        <button id="capturaMapa" class="btn secundario">Ponerlo en el mapa</button>
         <span class="espaciador"></span>
         <button id="capturaSaltar" class="btn secundario">Saltar</button>
         <button id="capturaGuardar" class="btn">Guardar y seguir</button>
@@ -462,7 +554,7 @@
     <div class="modal-caja">
       <h2 id="tituloSelector">Poner en el mapa</h2>
       <p class="ayuda">
-        Toca el punto exacto donde está la cafetería. Puedes acercar con los
+        Toca el punto exacto donde está el lugar. Puedes acercar con los
         botones + / − o con dos dedos.
       </p>
       <div id="mapaSelector"></div>

@@ -8,7 +8,7 @@
    Si cambias los archivos y no ves los cambios, sube el número de VERSION.
    ========================================================================= */
 
-const VERSION = 'cafeterias-v16';
+const VERSION = 'mis-lugares-v17';
 
 const ARCHIVOS = [
   './',
@@ -21,7 +21,12 @@ const ARCHIVOS = [
   './vigilancia.js',
   './app.js',
   './manifest.webmanifest',
-  './icono.svg'
+  './icono.svg',
+  // Las tipografías van en la caché para que la app se vea igual sin señal.
+  './assets/fonts/archivo-latin.woff2',
+  './assets/fonts/archivo-latin-ext.woff2',
+  './assets/fonts/chivo-mono-latin.woff2',
+  './assets/fonts/chivo-mono-latin-ext.woff2'
 ];
 
 self.addEventListener('install', ev => {
