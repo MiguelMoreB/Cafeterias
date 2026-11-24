@@ -357,10 +357,30 @@ code { background: #efe7de; padding: 1px 5px; border-radius: 4px; font-size: 12p
 .estrella {
   width: 40px; height: 40px; padding: 0;
   background: none; border: 0; cursor: pointer;
-  font-size: 30px; line-height: 1; color: var(--borde);
+  display: grid; place-items: center;
 }
-/* Marcada = ámbar lleno (★); vacía = gris claro hueco (☆): se distinguen por color Y por forma. */
-.estrella.marcada { color: var(--ambar); }
+/* El degradado va en el GLIFO, no en el botón.
+   Medido: el botón mide 40px pero la estrella solo 25px y empieza en el 7.5.
+   Pintando sobre el botón, un 10% caía antes de que la estrella empezara
+   (se veía vacía) y un 90% la rebasaba (se veía llena): el relleno parcial
+   mentía. Con display:inline-block el span se ajusta al ancho del glifo, así
+   que el porcentaje se mide sobre la estrella misma. */
+.estrella .glifo {
+  display: inline-block;
+  font-size: 30px; line-height: 1;
+  /* Degradado duro: ámbar hasta --relleno, gris después, recortado a la
+     forma del texto. --relleno lo pone el JS en el botón y se hereda. */
+  background: linear-gradient(90deg, var(--ambar) var(--relleno, 0%), var(--borde) var(--relleno, 0%));
+  -webkit-background-clip: text; background-clip: text;
+  /* Si un navegador viejo no soporta el recorte, la estrella se ve gris
+     (color de abajo) en vez de invisible. */
+  color: var(--borde);
+  -webkit-text-fill-color: transparent;
+}
+/* Deslizador y número, debajo de las estrellas. */
+.ajuste-calificacion { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+.ajuste-calificacion input[type=range] { flex: 1; min-width: 0; height: 32px; accent-color: var(--ambar); }
+.numero-calificacion { min-width: 5.5em; text-align: right; font-weight: 600; color: var(--ambar); }
 .btn-texto {
   margin-left: 8px; min-height: 40px; padding: 0 6px;
   background: none; border: 0; cursor: pointer;

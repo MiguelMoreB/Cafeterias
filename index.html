@@ -221,12 +221,17 @@
       <div class="campo">
         Calificación
         <div id="detalleEstrellas" class="estrellas" data-valor="0" role="group" aria-label="Calificación de 1 a 5 estrellas">
-          <button type="button" class="estrella" data-valor="1" aria-label="1 estrella">☆</button>
-          <button type="button" class="estrella" data-valor="2" aria-label="2 estrellas">☆</button>
-          <button type="button" class="estrella" data-valor="3" aria-label="3 estrellas">☆</button>
-          <button type="button" class="estrella" data-valor="4" aria-label="4 estrellas">☆</button>
-          <button type="button" class="estrella" data-valor="5" aria-label="5 estrellas">☆</button>
+          <button type="button" class="estrella" data-valor="1" aria-label="1 estrella"><span class="glifo">★</span></button>
+          <button type="button" class="estrella" data-valor="2" aria-label="2 estrellas"><span class="glifo">★</span></button>
+          <button type="button" class="estrella" data-valor="3" aria-label="3 estrellas"><span class="glifo">★</span></button>
+          <button type="button" class="estrella" data-valor="4" aria-label="4 estrellas"><span class="glifo">★</span></button>
+          <button type="button" class="estrella" data-valor="5" aria-label="5 estrellas"><span class="glifo">★</span></button>
           <button type="button" id="btnQuitarCalificacion" class="btn-texto" hidden>Quitar calificación</button>
+        </div>
+        <!-- Deslizador para afinar el decimal (4.7); las estrellas ponen un entero rápido. -->
+        <div class="ajuste-calificacion">
+          <input type="range" id="detalleDeslizador" min="0" max="5" step="0.1" value="0" aria-label="Calificación con decimales">
+          <span id="detalleNumero" class="numero-calificacion">Sin calificar</span>
         </div>
       </div>
 

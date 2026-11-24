@@ -152,6 +152,9 @@ function conectarEventos() {
     if (btn) pintarEstrellas(Number(btn.dataset.valor));
   });
   document.getElementById('btnQuitarCalificacion').addEventListener('click', () => pintarEstrellas(0));
+  // El deslizador es para afinar el decimal (en un celular no se le atina a
+  // 4.7 tocando una estrella); 'input' se dispara mientras se arrastra.
+  document.getElementById('detalleDeslizador').addEventListener('input', ev => pintarEstrellas(Number(ev.target.value)));
   document.getElementById('btnInterpretarHorario').addEventListener('click', interpretarHorarioPegado);
 }
 
@@ -1010,12 +1013,23 @@ async function agregarCafeteria(lugar) {
   }
 }
 
-// Calificación en estrellas: entero de 0 a 5, donde 0 = "sin calificar".
+// Calificación propia: de 0.1 a 5 con UN decimal (4.7), donde 0 = "sin calificar".
 // Se sanea aquí (y se reusa al importar) porque el dato puede venir de un
 // archivo editado a mano: si no es un número válido, mejor 0 que romper el orden.
 function sanearCalificacion(valor) {
+  // Un booleano no es una calificación: Number(true) daría 1 estrella sin
+  // que nadie la haya puesto.
+  if (typeof valor !== 'number' && typeof valor !== 'string') return 0;
+
   const n = Number(valor);
-  return Number.isInteger(n) && n >= 1 && n <= 5 ? n : 0;
+  if (!isFinite(n) || n > 5) return 0;
+
+  // Se redondea a un decimal (4.73 -> 4.7, 4.75 -> 4.8). Se multiplica por 10
+  // y se divide después porque Math.round solo redondea a enteros.
+  const r = Math.round(n * 10) / 10;
+  // Negativos y 0 caen aquí: 0 es "sin calificar", nunca "pésimo".
+  if (r < 0.1) return 0;
+  return r;
 }
 
 // Arma el objeto que guardamos. Un solo lugar donde se decide la forma de
@@ -1802,15 +1816,23 @@ function abrirDetalle(id) {
 // Pinta las 5 estrellas del detalle. La calificación "en edición" vive en
 // el atributo data-valor del contenedor, no en la cafetería: así "Cancelar"
 // de verdad descarta el cambio (igual que las notas y el horario).
+// Admite decimales: la estrella que contiene el decimal se rellena en parte
+// (con 4.7, la quinta al 70%), para que lo que se ve sea lo que hay guardado.
 function pintarEstrellas(valor) {
+  valor = sanearCalificacion(valor);
   const caja = document.getElementById('detalleEstrellas');
   caja.dataset.valor = String(valor);
   caja.querySelectorAll('.estrella').forEach(btn => {
-    const marcada = Number(btn.dataset.valor) <= valor;
-    btn.classList.toggle('marcada', marcada);
-    btn.textContent = marcada ? '★' : '☆';
-    btn.setAttribute('aria-pressed', String(Number(btn.dataset.valor) === valor));
+    const n = Number(btn.dataset.valor);
+    // Cuánto de ESTA estrella se llena: 0 a 100%. El CSS lo usa para pintar
+    // un degradado recortado a la forma de la estrella.
+    const relleno = Math.round(Math.min(1, Math.max(0, valor - (n - 1))) * 100);
+    btn.style.setProperty('--relleno', relleno + '%');
+    btn.classList.toggle('marcada', relleno > 0);
+    btn.setAttribute('aria-pressed', String(relleno === 100));
   });
+  document.getElementById('detalleDeslizador').value = String(valor);
+  document.getElementById('detalleNumero').textContent = valor === 0 ? 'Sin calificar' : String(valor);
   document.getElementById('btnQuitarCalificacion').hidden = valor === 0;
 }
 
