@@ -194,6 +194,7 @@ select, input[type="text"], textarea {
 .estado.cerrada { color: var(--rojo); }
 .estado.desconocido { color: var(--gris); }
 .km { color: var(--suave); }
+.nota-estrellas { color: var(--ambar); font-weight: 600; }
 .aviso-aprox {
   background: #fff3d6; color: #8a6100; border: 1px solid #f0dcb8;
   border-radius: 999px; padding: 1px 8px; font-size: 12px;
@@ -348,4 +349,20 @@ code { background: #efe7de; padding: 1px 5px; border-radius: 4px; font-size: 12p
   background: #2a211c; color: #fff;
   padding: 10px 16px; border-radius: 999px; font-size: 14px;
   z-index: 2000; max-width: 90vw; text-align: center;
+}
+
+/* ---------- Calificación con estrellas (detalle) ---------- */
+.estrellas { display: flex; align-items: center; flex-wrap: wrap; margin-top: 4px; }
+/* 40x40: más grande que el mínimo de 32px para que sea cómodo con el dedo. */
+.estrella {
+  width: 40px; height: 40px; padding: 0;
+  background: none; border: 0; cursor: pointer;
+  font-size: 30px; line-height: 1; color: var(--borde);
+}
+/* Marcada = ámbar lleno (★); vacía = gris claro hueco (☆): se distinguen por color Y por forma. */
+.estrella.marcada { color: var(--ambar); }
+.btn-texto {
+  margin-left: 8px; min-height: 40px; padding: 0 6px;
+  background: none; border: 0; cursor: pointer;
+  font-size: 14px; color: var(--cafe-claro); text-decoration: underline;
 }

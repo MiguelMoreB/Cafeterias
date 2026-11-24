@@ -261,6 +261,8 @@ function filasDesdeJSON(texto) {
       lon: Number(c.lon),
       horarios: normalizarHorarios(c.horarios),
       notas: c.notas || '',
+      // Sin esto las estrellas se perderían al reimportar un respaldo.
+      calificacion: sanearCalificacion(c.calificacion),
       url: ''
     }));
   }

@@ -69,7 +69,12 @@ function perteneceAVista(lugar) {
 // Los lugares guardados antes de que existieran las categorías no tienen
 // el campo: se tratan como de la primera categoría.
 function categoriaDeLugar(lugar) {
-  return lugar.categoria || leerCategorias()[0].id;
+  // Si el id ya no existe (categoría borrada en otro dispositivo o datos
+  // importados de otro teléfono), usamos la primera: si no, el lugar quedaría
+  // invisible en todas las vistas salvo "Todas".
+  const lista = leerCategorias();
+  if (lugar.categoria && lista.some(c => c.id === lugar.categoria)) return lugar.categoria;
+  return lista[0].id;
 }
 
 function emojiDeLugar(lugar) {

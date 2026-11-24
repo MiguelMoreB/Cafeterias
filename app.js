@@ -143,6 +143,15 @@ function conectarEventos() {
   document.getElementById('btnUsarPunto').addEventListener('click', confirmarPunto);
   document.getElementById('btnCancelarPunto').addEventListener('click', cerrarSelectorMapa);
   document.getElementById('btnAjustarUbicacion').addEventListener('click', ajustarUbicacionDetalle);
+
+  // Estrellas del detalle: un solo listener en el contenedor (delegación),
+  // en vez de uno por estrella. Tocar la misma estrella otra vez no la quita:
+  // para eso está el botón "Quitar calificación".
+  document.getElementById('detalleEstrellas').addEventListener('click', ev => {
+    const btn = ev.target.closest('.estrella');
+    if (btn) pintarEstrellas(Number(btn.dataset.valor));
+  });
+  document.getElementById('btnQuitarCalificacion').addEventListener('click', () => pintarEstrellas(0));
   document.getElementById('btnInterpretarHorario').addEventListener('click', interpretarHorarioPegado);
 }
 
@@ -205,6 +214,16 @@ function renderLista() {
     if (visitadas !== 0) return visitadas;
 
     if (orden === 'nombre') return a.cafe.nombre.localeCompare(b.cafe.nombre);
+    if (orden === 'calificacion_desc' || orden === 'calificacion_asc') {
+      const ca = a.cafe.calificacion || 0;
+      const cb = b.cafe.calificacion || 0;
+      // "Sin calificar" (0) no es "mala": va al final en los DOS órdenes,
+      // por eso no se puede simplemente restar los números.
+      if (ca === 0 && cb !== 0) return 1;
+      if (cb === 0 && ca !== 0) return -1;
+      if (ca !== cb) return orden === 'calificacion_desc' ? cb - ca : ca - cb;
+      // Empate: sigue al criterio de abajo (distancia, o nombre).
+    }
     if (orden === 'estado') {
       const d = rango[a.estado.estado] - rango[b.estado.estado];
       if (d !== 0) return d;
@@ -221,7 +240,18 @@ function renderLista() {
 
   actualizarContador(items.length, busqueda);
   document.getElementById('btnLimpiarBusqueda').hidden = !busqueda;
-  document.getElementById('vacio').hidden = cafeterias.length > 0;
+  // El mensaje de vacío distingue "no hay nada" de "esta categoría está vacía".
+  const hayEnVista = cafeterias.some(perteneceAVista);
+  const vacio = document.getElementById('vacio');
+  vacio.hidden = hayEnVista;
+  if (!hayEnVista && cafeterias.length > 0) {
+    const cat = categoriaPorId(categoriaActiva());
+    vacio.textContent = `Esta categoría${cat ? ` (${cat.emoji} ${cat.nombre})` : ''} está vacía. ` +
+      'Agrega un lugar o cambia de categoría arriba.';
+  } else {
+    vacio.innerHTML = 'Todavía no tienes cafeterías.<br>' +
+      'Toca <strong>＋</strong> arriba para buscar la primera.';
+  }
   if (mapa) pintarMarcadores();
 }
 
@@ -291,7 +321,10 @@ function actualizarContador(mostradas, busqueda) {
   const visitadas = enVista.filter(c => c.visitada).length;
   const partes = [];
 
-  if (mostradas === 0) {
+  if (enVista.length === 0) {
+    // Categoría vacía: no es que los filtros no cumplan, es que no hay nada.
+    partes.push('Categoría vacía');
+  } else if (mostradas === 0) {
     partes.push(busqueda ? `Ninguno coincide con "${document.getElementById('buscarEnLista').value.trim()}"`
                          : 'Ninguno cumple los filtros');
   } else if (mostradas < enVista.length) {
@@ -314,6 +347,7 @@ function crearTarjeta({ cafe, estado, km }) {
       <div class="meta">
         <span class="estado ${estado.estado}"></span>
         <span class="km"></span>
+        ${cafe.calificacion > 0 ? `<span class="nota-estrellas" title="Tu calificación">★ ${cafe.calificacion}</span>` : ''}
         ${cafe.aproximada ? '<span class="aviso-aprox">ubicación por confirmar</span>' : ''}
       </div>
     </div>`;
@@ -459,6 +493,9 @@ function cambiarCategoriaActiva() {
   fijarCategoriaActiva(document.getElementById('categoriaActiva').value);
   renderLista();
   if (mapa) ajustarVistaDelMapa();
+  // El panel "Cerca de ti" se calcula aparte: sin esto seguiría mostrando
+  // lugares de la categoría anterior.
+  if (modoPaseoActivo()) revisarCercanas();
 }
 
 // Al cambiar de categoría el mapa debe reencuadrar: si no, te quedas
@@ -635,8 +672,13 @@ function guardarManual() {
     categoria: document.getElementById('manualCategoria').value
   };
 
-  if (yaExiste(lugar)) {
-    aviso.textContent = 'Ya tienes un lugar con ese nombre en ese punto.';
+  // El duplicado puede estar en OTRA categoría: decimos en cuál, si no el
+  // usuario no entiende por qué no lo deja guardar.
+  const repetido = yaExiste(lugar);
+  if (repetido) {
+    const catRepetido = categoriaPorId(categoriaDeLugar(repetido));
+    const donde = catRepetido ? ` (está en ${catRepetido.emoji} ${catRepetido.nombre})` : '';
+    aviso.textContent = `Ya tienes "${repetido.nombre}" en ese mismo punto${donde}.`;
     return;
   }
 
@@ -695,10 +737,16 @@ function pintarEstadoModal() {
   boton.className = encendido ? 'btn peligro' : 'btn';
 
   const a = leerAjustes();
-  const sinVisitadas = cafeterias.filter(c => !(a.soloNoVisitadas && c.visitada)).length;
-  document.getElementById('estadoPaseo').textContent = encendido
-    ? `Encendido · vigilando ${sinVisitadas} cafeterías a ${a.radioKm} km`
-    : `Apagado · se vigilarían ${sinVisitadas} de tus ${cafeterias.length} cafeterías`;
+  // El modo paseo solo vigila la categoría activa, así que solo contamos esas:
+  // si no, el número mostrado no coincidiría con lo que de verdad se vigila.
+  const enCategoria = cafeterias.filter(perteneceAVista);
+  const sinVisitadas = enCategoria.filter(c => !(a.soloNoVisitadas && c.visitada)).length;
+  const estado = encendido ? 'Encendido' : 'Apagado';
+  document.getElementById('estadoPaseo').textContent = sinVisitadas === 0
+    ? `${estado} · no hay lugares en esta categoría para vigilar`
+    : encendido
+      ? `Encendido · vigilando ${sinVisitadas} cafeterías a ${a.radioKm} km`
+      : `Apagado · se vigilarían ${sinVisitadas} de tus ${enCategoria.length} cafeterías`;
 }
 
 // Los ajustes se guardan en cuanto los cambias y aplican de inmediato,
@@ -962,6 +1010,14 @@ async function agregarCafeteria(lugar) {
   }
 }
 
+// Calificación en estrellas: entero de 0 a 5, donde 0 = "sin calificar".
+// Se sanea aquí (y se reusa al importar) porque el dato puede venir de un
+// archivo editado a mano: si no es un número válido, mejor 0 que romper el orden.
+function sanearCalificacion(valor) {
+  const n = Number(valor);
+  return Number.isInteger(n) && n >= 1 && n <= 5 ? n : 0;
+}
+
 // Arma el objeto que guardamos. Un solo lugar donde se decide la forma de
 // una cafetería, lo use quien lo use (búsqueda o importación).
 function construirCafe(datos, horarios) {
@@ -979,6 +1035,7 @@ function construirCafe(datos, horarios) {
     web: datos.web || null,
     notas: datos.notas || '',
     visitada: !!datos.visitada,
+    calificacion: sanearCalificacion(datos.calificacion),
     // Lo que agregas o importas cae en la categoría que estás viendo.
     categoria: datos.categoria || categoriaParaGuardar(),
     // true = la ubicación la adivinó un buscador, no vino de un link exacto.
@@ -1217,6 +1274,12 @@ async function procesarImportacion(filas) {
   if (completadas) partes.push(`${completadas} con el horario completado`);
   if (repetidas) partes.push(`${repetidas} ya las tenías`);
   if (noEncontradas.length || cortos.length) partes.push(`${noEncontradas.length + cortos.length} sin ubicar`);
+  // Con "Todas" los nuevos caen en la primera categoría y podrían quedar
+  // fuera de tu vista: avisamos dónde buscarlos.
+  if (agregadas > 0) {
+    const catDestino = categoriaPorId(categoriaParaGuardar());
+    if (catDestino) partes.push(`en ${catDestino.emoji} ${catDestino.nombre}`);
+  }
   estadoImport(partes.join(' · ') + avisoHorarios);
 
   mostrarPendientes(noEncontradas, cortos);
@@ -1484,6 +1547,7 @@ async function intentarCruzarConOSM(filas, boton) {
     });
 
     let encontradas = 0;
+    let yaEstaban = 0;   // las que ya tenías: no son "encontradas" ni "faltan", pero hay que contarlas
     const siguenFaltando = [];
 
     for (const fila of filas) {
@@ -1494,7 +1558,7 @@ async function intentarCruzarConOSM(filas, boton) {
         nombre: fila.nombre,        // respetamos el nombre de TU lista
         aproximada: !match.exacto   // si el nombre no calzó exacto, se marca
       });
-      if (yaExiste(lugar)) continue;
+      if (yaExiste(lugar)) { yaEstaban++; continue; }
 
       cafeterias.push(construirCafe(lugar, parsearOpeningHours(lugar.openingHours) || horariosVacios()));
       encontradas++;
@@ -1502,7 +1566,9 @@ async function intentarCruzarConOSM(filas, boton) {
 
     DB.guardar(cafeterias);
     renderLista();
-    estadoImport(`Encontradas ${encontradas} de ${filas.length} en OpenStreetMap. ` +
+    // Con la cuenta de "ya las tenías" los números cuadran con filas.length.
+    const textoYaEstaban = yaEstaban > 0 ? ` ${yaEstaban} ya las tenías.` : '';
+    estadoImport(`Encontradas ${encontradas} de ${filas.length} en OpenStreetMap.${textoYaEstaban} ` +
       `Las otras ${siguenFaltando.length} hay que capturarlas.`);
     mostrarPendientes(siguenFaltando, []);
   } catch (e) {
@@ -1724,10 +1790,28 @@ function abrirDetalle(id) {
   }
   selCat.value = categoriaDeLugar(cafe);
 
+  // Calificación: solo se pinta; se guarda hasta tocar "Guardar".
+  pintarEstrellas(sanearCalificacion(cafe.calificacion));
+
   document.getElementById('horarioPegado').value = '';
   document.getElementById('estadoHorarioPegado').textContent = '';
 
   abrirModal('modalDetalle');
+}
+
+// Pinta las 5 estrellas del detalle. La calificación "en edición" vive en
+// el atributo data-valor del contenedor, no en la cafetería: así "Cancelar"
+// de verdad descarta el cambio (igual que las notas y el horario).
+function pintarEstrellas(valor) {
+  const caja = document.getElementById('detalleEstrellas');
+  caja.dataset.valor = String(valor);
+  caja.querySelectorAll('.estrella').forEach(btn => {
+    const marcada = Number(btn.dataset.valor) <= valor;
+    btn.classList.toggle('marcada', marcada);
+    btn.textContent = marcada ? '★' : '☆';
+    btn.setAttribute('aria-pressed', String(Number(btn.dataset.valor) === valor));
+  });
+  document.getElementById('btnQuitarCalificacion').hidden = valor === 0;
 }
 
 // Corrige la posición de una cafetería tocando el punto correcto en el mapa.
@@ -1785,6 +1869,7 @@ function guardarDetalle() {
   // que no parezca que se borró.
   const categoriaAntes = categoriaDeLugar(cafe);
   cafe.categoria = document.getElementById('detalleCategoria').value;
+  cafe.calificacion = sanearCalificacion(document.getElementById('detalleEstrellas').dataset.valor);
   const cambioDeCategoria = cafe.categoria !== categoriaAntes;
 
   DB.guardar(cafeterias);

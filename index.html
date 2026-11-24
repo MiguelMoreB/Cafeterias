@@ -61,6 +61,8 @@
           <option value="distancia">Ordenar: más cercanas</option>
           <option value="nombre">Ordenar: por nombre</option>
           <option value="estado">Ordenar: abiertas primero</option>
+          <option value="calificacion_desc">Ordenar: mejor calificadas</option>
+          <option value="calificacion_asc">Ordenar: peor calificadas</option>
         </select>
       </div>
 
@@ -213,6 +215,20 @@
         Categoría
         <select id="detalleCategoria"></select>
       </label>
+
+      <!-- Calificación: cada estrella es un botón grande para el dedo. No se
+           guarda al tocarla, sino al dar Guardar (así Cancelar sí cancela). -->
+      <div class="campo">
+        Calificación
+        <div id="detalleEstrellas" class="estrellas" data-valor="0" role="group" aria-label="Calificación de 1 a 5 estrellas">
+          <button type="button" class="estrella" data-valor="1" aria-label="1 estrella">☆</button>
+          <button type="button" class="estrella" data-valor="2" aria-label="2 estrellas">☆</button>
+          <button type="button" class="estrella" data-valor="3" aria-label="3 estrellas">☆</button>
+          <button type="button" class="estrella" data-valor="4" aria-label="4 estrellas">☆</button>
+          <button type="button" class="estrella" data-valor="5" aria-label="5 estrellas">☆</button>
+          <button type="button" id="btnQuitarCalificacion" class="btn-texto" hidden>Quitar calificación</button>
+        </div>
+      </div>
 
       <h3>Horario</h3>
 
